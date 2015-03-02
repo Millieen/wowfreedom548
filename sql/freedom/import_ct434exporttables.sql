@@ -2,18 +2,20 @@
 -- P.S. Export tables must be loaded into `test` DB
 -- P.S.S. Refer to this on what tables need to be exported: https://docs.google.com/spreadsheets/d/11sDBKNx-rTJphiZef37d7HtnIz9VOgGaPV1FiOiOvQo/
 -- P.S.S.S. This import process does not include custom columns or custom tables, they will be handled separate SQL scripts.
+USE test;
 
 -- -- ------- -- --
 -- -- AUTH DB -- --
 -- -- ------- -- --
 
 -- test.account => auth.account
-USE test;
 START TRANSACTION;
 DELETE FROM auth.account;
 INSERT INTO auth.account (`id`, `username`, `sha_pass_hash`, `sessionkey`, `v`, `s`, `token_key`, `email`, `reg_mail`, `joindate`, `last_ip`, `failed_logins`, `locked`, `lock_country`, `last_login`, `online`, `expansion`, `mutetime`, `mutereason`, `muteby`, `locale`, `os`, `recruiter` )
 SELECT 						  `id`, `username`, `sha_pass_hash`, `sessionkey`, `v`, `s`, `token_key`, `email`, `reg_mail`, `joindate`, `last_ip`, `failed_logins`, `locked`, `lock_country`, `last_login`, `online`, `expansion`, `mutetime`, `mutereason`, `muteby`, `locale`, `os`, `recruiter`
 FROM 			test.account;
+-- update expansion
+UPDATE auth.account SET `expansion` = 4;
 COMMIT;
 
 -- test.account_access => auth.account_access
@@ -83,8 +85,8 @@ WHERE EXISTS (
 	AND a.position_z = b.position_z
 );
 -- begin insertion
-INSERT INTO world.creature (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `size`, `owner`, `created`)
-SELECT 							 `guid`, `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `size`, `owner`, `creation_date`
+INSERT INTO world.creature (`id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `size`, `owner`, `created`)
+SELECT 							 `id`, `map`, `spawnMask`, `phaseMask`, `modelid`, `equipment_id`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecs`, `spawndist`, `currentwaypoint`, `curhealth`, `curmana`, `MovementType`, `npcflag`, `unit_flags`, `dynamicflags`, `size`, `owner`, `creation_date`
 FROM			test.creature;
 COMMIT;
 
@@ -142,6 +144,14 @@ COMMIT;
 -- -- CHARACTERS DB -- --
 -- -- ------------- -- --
 
+-- test.account_data => characters.account_data
+START TRANSACTION;
+DELETE FROM characters.account_data;
+INSERT INTO characters.account_data (`accountId`, `type`, `time`, `data`)
+SELECT 									    `accountId`, `type`, `time`, `data`
+FROM			test.account_data;								  
+COMMIT;
+
 -- test.characters => characters.characters
 START TRANSACTION;
 DELETE FROM characters.characters;
@@ -150,20 +160,28 @@ SELECT 									  `guid`, `account`, `name`, `slot`, `race`, `class`, `gender`, 
 FROM			test.characters;								  
 COMMIT;
 
+-- test.character_account_data => characters.character_account_data
+START TRANSACTION;
+DELETE FROM characters.character_account_data;
+INSERT INTO characters.character_account_data (`guid`, `type`, `time`, `data`)
+SELECT 									    			  `guid`, `type`, `time`, `data`
+FROM			test.character_account_data;								  
+COMMIT;
+
+-- test.character_cuf_profiles => characters.character_cuf_profiles
+START TRANSACTION;
+DELETE FROM characters.character_cuf_profiles;
+INSERT INTO characters.character_cuf_profiles (`guid`, `id`, `name`, `frameHeight`, `frameWidth`, `sortBy`, `healthText`, `boolOptions`, `unk146`, `unk147`, `unk148`, `unk150`, `unk152`, `unk154`)
+SELECT 									    			  `guid`, `id`, `name`, `frameHeight`, `frameWidth`, `sortBy`, `healthText`, `boolOptions`, `unk146`, `unk147`, `unk148`, `unk150`, `unk152`, `unk154`
+FROM			test.character_cuf_profiles;								  
+COMMIT;
+
 -- test.character_currency => characters.character_currency
 START TRANSACTION;
 DELETE FROM characters.character_currency;
 INSERT INTO characters.character_currency (`guid`, `currency`, `total_count`, `week_count`)
 SELECT 									 			 `guid`, `currency`, `total_count`, `week_count`
 FROM			test.character_currency;								  
-COMMIT;
-
--- test.character_equipmentsets => characters.character_equipmentsets
-START TRANSACTION;
-DELETE FROM characters.character_equipmentsets;
-INSERT INTO characters.character_equipmentsets (`guid`, `setguid`, `setindex`, `name`, `iconname`, `ignore_mask`, `item0`, `item1`, `item2`, `item3`, `item4`, `item5`, `item6`, `item7`, `item8`, `item9`, `item10`, `item11`, `item12`, `item13`, `item14`, `item15`, `item16`, `item17`, `item18`)
-SELECT 									 			 	   `guid`, `setguid`, `setindex`, `name`, `iconname`, `ignore_mask`, `item0`, `item1`, `item2`, `item3`, `item4`, `item5`, `item6`, `item7`, `item8`, `item9`, `item10`, `item11`, `item12`, `item13`, `item14`, `item15`, `item16`, `item17`, `item18`
-FROM			test.character_equipmentsets;								  
 COMMIT;
 
 -- test.character_inventory => characters.character_inventory
@@ -182,12 +200,28 @@ SELECT 									 	  `id`, `entry`, `owner`, `modelid`, `CreatedBySpell`, `PetTyp
 FROM			test.character_pet;								  
 COMMIT;
 
+-- test.character_skills => characters.character_skills
+START TRANSACTION;
+DELETE FROM characters.character_skills;
+INSERT INTO characters.character_skills (`guid`, `skill`, `value`, `max`)
+SELECT 									 	  	  `guid`, `skill`, `value`, `max`
+FROM			test.character_skills;								  
+COMMIT;
+
 -- test.character_social => characters.character_social
 START TRANSACTION;
 DELETE FROM characters.character_social;
 INSERT INTO characters.character_social (`guid`, `friend`, `flags`, `note`)
 SELECT 									 	  	  `guid`, `friend`, `flags`, `note`
 FROM			test.character_social;								  
+COMMIT;
+
+-- test.character_spell => characters.character_spell
+START TRANSACTION;
+DELETE FROM characters.character_spell;
+INSERT INTO characters.character_spell (`guid`, `spell`, `active`, `disabled`)
+SELECT 									 	  	 `guid`, `spell`, `active`, `disabled`
+FROM			test.character_spell;								  
 COMMIT;
 
 -- test.gm_tickets => characters.gm_tickets
