@@ -144,36 +144,12 @@ COMMIT;
 -- -- CHARACTERS DB -- --
 -- -- ------------- -- --
 
--- test.account_data => characters.account_data
-START TRANSACTION;
-DELETE FROM characters.account_data;
-INSERT INTO characters.account_data (`accountId`, `type`, `time`, `data`)
-SELECT 									    `accountId`, `type`, `time`, `data`
-FROM			test.account_data;								  
-COMMIT;
-
 -- test.characters => characters.characters
 START TRANSACTION;
 DELETE FROM characters.characters;
 INSERT INTO characters.characters (`guid`, `account`, `name`, `slot`, `race`, `class`, `gender`, `level`, `xp`, `money`, `playerBytes`, `playerBytes2`, `playerFlags`, `position_x`, `position_y`, `position_z`, `map`, `instance_id`, `instance_mode_mask`, `orientation`, `taximask`, `online`, `cinematic`, `totaltime`, `leveltime`, `logout_time`, `is_logout_resting`, `rest_bonus`, `resettalents_cost`, `resettalents_time`, `talentTree`, `trans_x`, `trans_y`, `trans_z`, `trans_o`, `transguid`, `extra_flags`, `stable_slots`, `at_login`, `zone`, `death_expire_time`, `taxi_path`, `totalKills`, `todayKills`, `yesterdayKills`, `chosenTitle`, `watchedFaction`, `drunk`, `health`, `power1`, `power2`, `power3`, `power4`, `power5`, `latency`, `speccount`, `activespec`, `exploredZones`, `equipmentCache`, `knownTitles`, `actionBars`, `grantableLevels`, `deleteInfos_Account`, `deleteInfos_Name`, `deleteDate`)
 SELECT 									  `guid`, `account`, `name`, `slot`, `race`, `class`, `gender`, `level`, `xp`, `money`, `playerBytes`, `playerBytes2`, `playerFlags`, `position_x`, `position_y`, `position_z`, `map`, `instance_id`, `instance_mode_mask`, `orientation`, `taximask`, `online`, `cinematic`, `totaltime`, `leveltime`, `logout_time`, `is_logout_resting`, `rest_bonus`, `resettalents_cost`, `resettalents_time`, `talentTree`, `trans_x`, `trans_y`, `trans_z`, `trans_o`, `transguid`, `extra_flags`, `stable_slots`, `at_login`, `zone`, `death_expire_time`, `taxi_path`, `totalKills`, `todayKills`, `yesterdayKills`, `chosenTitle`, `watchedFaction`, `drunk`, `health`, `power1`, `power2`, `power3`, `power4`, `power5`, `latency`, `speccount`, `activespec`, `exploredZones`, `equipmentCache`, `knownTitles`, `actionBars`, `grantableLevels`, `deleteInfos_Account`, `deleteInfos_Name`, `deleteDate`
 FROM			test.characters;								  
-COMMIT;
-
--- test.character_account_data => characters.character_account_data
-START TRANSACTION;
-DELETE FROM characters.character_account_data;
-INSERT INTO characters.character_account_data (`guid`, `type`, `time`, `data`)
-SELECT 									    			  `guid`, `type`, `time`, `data`
-FROM			test.character_account_data;								  
-COMMIT;
-
--- test.character_cuf_profiles => characters.character_cuf_profiles
-START TRANSACTION;
-DELETE FROM characters.character_cuf_profiles;
-INSERT INTO characters.character_cuf_profiles (`guid`, `id`, `name`, `frameHeight`, `frameWidth`, `sortBy`, `healthText`, `boolOptions`, `unk146`, `unk147`, `unk148`, `unk150`, `unk152`, `unk154`)
-SELECT 									    			  `guid`, `id`, `name`, `frameHeight`, `frameWidth`, `sortBy`, `healthText`, `boolOptions`, `unk146`, `unk147`, `unk148`, `unk150`, `unk152`, `unk154`
-FROM			test.character_cuf_profiles;								  
 COMMIT;
 
 -- test.character_currency => characters.character_currency
