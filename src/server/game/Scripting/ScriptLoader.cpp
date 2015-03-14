@@ -58,22 +58,22 @@ void AddSC_debug_commandscript();
 void AddSC_deserter_commandscript();
 void AddSC_disable_commandscript();
 void AddSC_event_commandscript();
-void AddSC_gm_commandscript();
-void AddSC_go_commandscript();
-void AddSC_gobject_commandscript();
+//void AddSC_gm_commandscript(); // AddSC_fgm_commandscript() extends this one
+//void AddSC_go_commandscript(); // AddSC_fgo_commandscript() extends this one
+//void AddSC_gobject_commandscript(); // AddSC_fgob_commandscript() extends this one
 void AddSC_group_commandscript();
 void AddSC_guild_commandscript();
 void AddSC_honor_commandscript();
 void AddSC_instance_commandscript();
 void AddSC_learn_commandscript();
 void AddSC_lfg_commandscript();
-void AddSC_list_commandscript();
-void AddSC_lookup_commandscript();
+//void AddSC_list_commandscript(); // AddSC_flist_commandscript()
+//void AddSC_lookup_commandscript(); // AddSC_flookup_commandscript() extends this one
 void AddSC_message_commandscript();
 void AddSC_misc_commandscript();
 void AddSC_mmaps_commandscript();
 void AddSC_modify_commandscript();
-void AddSC_npc_commandscript();
+//void AddSC_npc_commandscript(); // AddSC_fnpc_commandscript() extends this one
 void AddSC_pet_commandscript();
 void AddSC_quest_commandscript();
 void AddSC_rbac_commandscript();
@@ -764,22 +764,22 @@ void AddCommandScripts()
     AddSC_deserter_commandscript();
     AddSC_disable_commandscript();
     AddSC_event_commandscript();
-    AddSC_gm_commandscript();
-    AddSC_go_commandscript();
-    AddSC_gobject_commandscript();
+    //AddSC_gm_commandscript();
+    //AddSC_go_commandscript();
+    //AddSC_gobject_commandscript();
     AddSC_group_commandscript();
     AddSC_guild_commandscript();
     AddSC_honor_commandscript();
     AddSC_instance_commandscript();
     AddSC_learn_commandscript();
-    AddSC_lookup_commandscript();
+    //AddSC_lookup_commandscript();
     AddSC_lfg_commandscript();
-    AddSC_list_commandscript();
+    //AddSC_list_commandscript();
     AddSC_message_commandscript();
     AddSC_misc_commandscript();
     AddSC_mmaps_commandscript();
     AddSC_modify_commandscript();
-    AddSC_npc_commandscript();
+    //AddSC_npc_commandscript();
     AddSC_quest_commandscript();
     AddSC_pet_commandscript();
     AddSC_rbac_commandscript();
@@ -1450,13 +1450,25 @@ void AddBattlegroundScripts()
 
 #ifdef SCRIPTS
 /* This is where custom scripts' loading functions should be declared. */
-
+void AddSC_fgm_commandscript();
+void AddSC_fnpc_commandscript();
+void AddSC_fmisc_commandscript();
+void AddSC_fgobject_commandscript();
+void AddSC_fgoto_commandscript();
+void AddSC_freedom_commandscript();
+void AddSC_flist_commandscript();
 #endif
 
 void AddCustomScripts()
 {
 #ifdef SCRIPTS
     /* This is where custom scripts should be added. */
-
+    AddSC_fgm_commandscript();
+    AddSC_fnpc_commandscript();
+    AddSC_fmisc_commandscript();
+    AddSC_fgobject_commandscript();
+    AddSC_fgoto_commandscript();
+    AddSC_freedom_commandscript();
+    AddSC_flist_commandscript();
 #endif
 }

@@ -684,6 +684,24 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_DEBUG_PHASE                            = 776, // Only 4.3.4
 
     // custom permissions 1000+
+    
+    // FREEDOM CMDS             1000 <= X < 2000
+    RBAC_PERM_COMMAND_FREEDOM                                = 1000,
+
+    // CUSTOM GM CMDS           2000 <= X < 3000
+
+    // CUSTOM GOBJECT CMDS      3000 <= X < 4000
+
+    // CUSTOM GOTO CMDS         4000 <= X < 5000
+
+    // CUSTOM NPC CMDS          5000 <= X < 6000
+
+    // CUSTOM LIST CMDS         6000 <= X < 7000
+
+    // CUSTOM LOOKUP CMDS       7000 <= X < 8000
+
+    // CUSTOM MISC CMDS         8000 <= X < 9000
+
     RBAC_PERM_MAX
 };
 
