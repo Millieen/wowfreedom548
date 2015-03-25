@@ -687,6 +687,27 @@ enum RBACPermissions
     
     // FREEDOM CMDS             1000 <= X < 2000
     RBAC_PERM_COMMAND_FREEDOM                                = 1000,
+    RBAC_PERM_COMMAND_FREEDOM_SUMMON                         = 1001,
+    RBAC_PERM_COMMAND_FREEDOM_TELE                           = 1002,
+    RBAC_PERM_COMMAND_FREEDOM_PTELE                          = 1003,
+    RBAC_PERM_COMMAND_FREEDOM_MORPH                          = 1004,
+    RBAC_PERM_COMMAND_FREEDOM_DEMORPH                        = 1005,
+    RBAC_PERM_COMMAND_FREEDOM_BANK                           = 1006,
+    RBAC_PERM_COMMAND_FREEDOM_MAILBOX                        = 1007,
+    RBAC_PERM_COMMAND_FREEDOM_REVIVE                         = 1008,
+    RBAC_PERM_COMMAND_FREEDOM_UNAURA                         = 1009,
+    RBAC_PERM_COMMAND_FREEDOM_FIX                            = 1010,
+    RBAC_PERM_COMMAND_FREEDOM_MONEY                          = 1011,
+    RBAC_PERM_COMMAND_FREEDOM_WALK                           = 1012,
+    RBAC_PERM_COMMAND_FREEDOM_RUN                            = 1013,
+    RBAC_PERM_COMMAND_FREEDOM_SWIM                           = 1014,
+    RBAC_PERM_COMMAND_FREEDOM_SPEEDS                         = 1015,
+    RBAC_PERM_COMMAND_FREEDOM_SCALE                          = 1016,
+    RBAC_PERM_COMMAND_FREEDOM_DRUNK                          = 1017,
+    RBAC_PERM_COMMAND_FREEDOM_WATERWALK                      = 1018,
+    RBAC_PERM_COMMAND_FREEDOM_FLY                            = 1019,
+    RBAC_PERM_COMMAND_FREEDOM_TELE_MODIFY                    = 1020,
+    RBAC_PERM_COMMAND_FREEDOM_MORPH_MODIFY                   = 1021,
 
     // CUSTOM GM CMDS           2000 <= X < 3000
 
