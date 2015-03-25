@@ -93,4 +93,18 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_DEL_DISABLES, "DELETE FROM disables WHERE entry = ? AND sourceType = ?", CONNECTION_ASYNC);
     // 0: uint8
     PrepareStatement(WORLD_SEL_REQ_XP, "SELECT xp_for_next_level FROM player_xp_for_level WHERE lvl = ?", CONNECTION_SYNCH);
+
+    // FREEDOM CMDS
+    PrepareStatement(WORLD_SEL_FREEDOM_TELE, "SELECT position_x, position_y, position_z, orientation, map, name, gm_uid FROM freedom_tele WHERE name LIKE ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_SEL_FREEDOM_TELE_EXACT, "SELECT position_x, position_y, position_z, orientation, map, name, gm_uid FROM freedom_tele WHERE name = ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_INS_FREEDOM_TELE, "INSERT INTO freedom_tele (position_x, position_y, position_z, orientation, map, name, gm_uid) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_FREEDOM_TELE, "DELETE FROM freedom_tele WHERE name = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_SEL_FREEDOM_PRIVATE_TELE, "SELECT position_x, position_y, position_z, orientation, map, name, gm_uid, owner_uid FROM freedom_tele_private WHERE name LIKE ? AND owner_uid = ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_SEL_FREEDOM_PRIVATE_TELE_EXACT, "SELECT position_x, position_y, position_z, orientation, map, name, gm_uid, owner_uid FROM freedom_tele_private WHERE name = ? AND owner_uid = ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_INS_FREEDOM_PRIVATE_TELE, "INSERT INTO freedom_tele_private (position_x, position_y, position_z, orientation, map, name, owner_uid) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_FREEDOM_PRIVATE_TELE, "DELETE FROM freedom_tele_private WHERE name = ? AND owner_uid = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_SEL_FREEDOM_MORPH_EXACT, "SELECT guid, name, display_id, gm_uid FROM freedom_morph WHERE name = ? AND guid = ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_INS_FREEDOM_MORPH, "INSERT INTO freedom_morph (guid, name, display_id, gm_uid) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_DEL_FREEDOM_MORPH, "DELETE FROM freedom_morph WHERE name = ? AND guid = ?", CONNECTION_ASYNC);
+
 }
