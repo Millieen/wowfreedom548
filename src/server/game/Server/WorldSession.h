@@ -426,7 +426,9 @@ class WorldSession
         void HandleMoveUnRootAck(WorldPacket& recvPacket);
         void HandleMoveRootAck(WorldPacket& recvPacket);
         void HandleLookingForGroup(WorldPacket& recvPacket);
+
         void HandleReturnToGraveyard(WorldPacket& recvPacket);
+        void HandleRequestCemeteryList(WorldPacket& recvPacket);
 
         // new inspect
         void HandleInspectOpcode(WorldPacket& recvPacket);
@@ -943,6 +945,7 @@ class WorldSession
         void HandleVoidStorageTransfer(WorldPacket& recvData);
         void HandleVoidSwapItem(WorldPacket& recvData);
         void SendVoidStorageTransferResult(VoidTransferError result);
+        void SendVoidStorageFailed(uint8 Reason);
 
         // Transmogrification
         void HandleTransmogrifyItems(WorldPacket& recvData);
@@ -978,7 +981,7 @@ class WorldSession
         void HandleEjectPassenger(WorldPacket& data);
         void HandleEnterPlayerVehicle(WorldPacket& data);
         void HandleUpdateProjectilePosition(WorldPacket& recvPacket);
-        void HandleRequestHotfix(WorldPacket& recvPacket);
+        void HandleDBQueryBulk(WorldPacket& recvPacket);
         void HandleUpdateMissileTrajectory(WorldPacket& recvPacket);
         void HandleViolenceLevel(WorldPacket& recvPacket);
         void HandleObjectUpdateFailedOpcode(WorldPacket& recvPacket);

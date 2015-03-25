@@ -631,6 +631,37 @@ void WorldSession::HandleZoneUpdateOpcode(WorldPacket& recvData)
     //GetPlayer()->SendInitWorldStates(true, newZone);
 }
 
+void WorldSession::HandleRequestCemeteryList(WorldPacket& /*recvPacket*/)
+{
+    uint32 ZoneId = _player->GetZoneId();
+    uint32 Team = _player->GetTeam();
+
+    std::vector<uint32> GraveyardIds;
+    auto range = sObjectMgr->GraveYardStore.equal_range(ZoneId);
+
+    for (auto it = range.first; it != range.second && GraveyardIds.size() < 16; ++it)
+    {
+        if (it->second.team == 0 || it->second.team == Team)
+            GraveyardIds.push_back(it->first);
+    }
+
+    if (GraveyardIds.empty())
+    {
+        TC_LOG_DEBUG("network", "No graveyards found for zone %u for player %u (team %u) in CMSG_REQUEST_CEMETERY_LIST", ZoneId, m_GUIDLow, Team);
+        return;
+    }
+
+    WorldPacket data(SMSG_REQUEST_CEMETERY_LIST_RESPONSE, 1 + 4 + 4 * GraveyardIds.size());
+
+    data << uint32(GraveyardIds.size());
+    data.WriteBit(0); // IsTriggered
+
+    for (uint32 i = 0; i < GraveyardIds.size(); ++i)
+        data << uint32(GraveyardIds[i]);
+
+    SendPacket(&data);
+}
+
 void WorldSession::HandleReturnToGraveyard(WorldPacket& /*recvPacket*/)
 {
     if (GetPlayer()->IsAlive() || !GetPlayer()->HasFlag(PLAYER_FIELD_PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
@@ -2146,20 +2177,20 @@ void WorldSession::HandleInstanceLockResponse(WorldPacket& recvPacket)
     _player->SetPendingBind(0, 0);
 }
 
-void WorldSession::HandleRequestHotfix(WorldPacket& recvPacket)
+void WorldSession::HandleDBQueryBulk(WorldPacket& recvPacket)
 {
-    uint32 type, count;
-    recvPacket >> type;
+    uint32 TableHash, RecordId;
+    recvPacket >> TableHash;
 
-    DB2StorageBase const* store = GetDB2Storage(type);
+    DB2StorageBase const* store = GetDB2Storage(TableHash);
     if (!store)
     {
-        TC_LOG_ERROR("network", "CMSG_REQUEST_HOTFIX: Received unknown hotfix type: %u", type);
+        TC_LOG_ERROR("network", "CMSG_DB_QUERY_BULK: Received unknown hash query: %u", TableHash);
         recvPacket.rfinish();
         return;
     }
 
-    count = recvPacket.ReadBits(21);
+    uint32 count = recvPacket.ReadBits(21);
 
     ObjectGuid* guids = new ObjectGuid[count];
     for (uint32 i = 0; i < count; ++i)
@@ -2174,11 +2205,10 @@ void WorldSession::HandleRequestHotfix(WorldPacket& recvPacket)
         guids[i][2] = recvPacket.ReadBit();
     }
 
-    uint32 entry;
     for (uint32 i = 0; i < count; ++i)
     {
         recvPacket.ReadByteSeq(guids[i][1]);
-        recvPacket >> entry;
+        recvPacket >> RecordId;
         recvPacket.ReadByteSeq(guids[i][0]);
         recvPacket.ReadByteSeq(guids[i][5]);
         recvPacket.ReadByteSeq(guids[i][6]);
@@ -2188,28 +2218,28 @@ void WorldSession::HandleRequestHotfix(WorldPacket& recvPacket)
         recvPacket.ReadByteSeq(guids[i][3]);
 
         // temp: this should be moved once broadcast text is properly implemented
-        if (type == DB2_REPLY_BROADCAST)
+        if (TableHash == DB2_REPLY_BROADCAST)
         {
-            SendBroadcastText(entry);
+            SendBroadcastText(RecordId);
             continue;
         }
 
-        if (!store->HasRecord(entry))
+        if (!store->HasRecord(RecordId))
             continue;
 
-        ByteBuffer record;
-        store->WriteRecord(entry, (uint32)GetSessionDbcLocale(), record);
+        ByteBuffer Record;
+        store->WriteRecord(RecordId, (uint32)GetSessionDbcLocale(), Record);
 
         WorldPacket data(SMSG_DB_REPLY);
-        data << uint32(entry);
+        data << uint32(RecordId);
         data << uint32(time(NULL));
-        data << uint32(type);
-        data << uint32(record.size());
-        data.append(record);
+        data << uint32(RecordId);
+        data << uint32(Record.size());
+        data.append(Record);
 
         SendPacket(&data);
 
-        TC_LOG_DEBUG("network", "SMSG_DB_REPLY: Sent hotfix entry: %u type: %u", entry, type);
+        TC_LOG_DEBUG("network", "SMSG_DB_REPLY: Sent db entry: %u type: %u", RecordId, TableHash);
     }
 
     delete [] guids;
