@@ -49,26 +49,25 @@ public:
         };
 
         static ChatCommand freedomCommandTable[] = {
-                { "summon",         rbac::RBAC_PERM_COMMAND_FREEDOM_SUMMON,             false, &HandleFreedomSummonCommand,         "", NULL },
-                { "demorph",        rbac::RBAC_PERM_COMMAND_FREEDOM_DEMORPH,            false, &HandleFreedomDemorphCommand,        "", NULL },
-                { "bank",           rbac::RBAC_PERM_COMMAND_FREEDOM_BANK,               false, &HandleFreedomBankCommand,           "", NULL },
-                { "mailbox",        rbac::RBAC_PERM_COMMAND_FREEDOM_MAILBOX,            false, &HandleFreedomMailboxCommand,        "", NULL },
-                { "revive",         rbac::RBAC_PERM_COMMAND_FREEDOM_REVIVE,             false, &HandleFreedomReviveCommand,         "", NULL },
-                { "unaura",         rbac::RBAC_PERM_COMMAND_FREEDOM_UNAURA,             false, &HandleFreedomUnAuraCommand,         "", NULL },
-                { "fix",            rbac::RBAC_PERM_COMMAND_FREEDOM_FIX,                false, &HandleFreedomFixCommand,            "", NULL },
-                { "money",          rbac::RBAC_PERM_COMMAND_FREEDOM_MONEY,              false, &HandleFreedomMoneyCommand,          "", NULL },
-                { "walk",           rbac::RBAC_PERM_COMMAND_FREEDOM_WALK,               false, &HandleFreedomWalkCommand,           "", NULL },
-                { "run",            rbac::RBAC_PERM_COMMAND_FREEDOM_RUN,                false, &HandleFreedomRunCommand,            "", NULL },
-                { "swim",           rbac::RBAC_PERM_COMMAND_FREEDOM_SWIM,               false, &HandleFreedomSwimCommand,           "", NULL },
-                { "speed",          rbac::RBAC_PERM_COMMAND_FREEDOM_SPEEDS,             false, &HandleFreedomSpeedCommand,          "", NULL },
-                { "scale",          rbac::RBAC_PERM_COMMAND_FREEDOM_SCALE,              false, &HandleFreedomScaleCommand,          "", NULL },
-                { "drunk",          rbac::RBAC_PERM_COMMAND_FREEDOM_DRUNK,              false, &HandleFreedomDrunkCommand,          "", NULL },
-                { "waterwalk",      rbac::RBAC_PERM_COMMAND_FREEDOM_WATERWALK,          false, &HandleFreedomWaterwalkCommand,      "", NULL },
-                { "fly",            rbac::RBAC_PERM_COMMAND_FREEDOM_FLY,                false, &HandleFreedomFlyCommand,            "", NULL },
                 { "morph",          rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH,              false, NULL,                                "", freedomMorphCommandTable },
                 { "teleport",       rbac::RBAC_PERM_COMMAND_FREEDOM_TELE,               false, NULL,                                "", freedomTeleportCommandTable },
                 { "pteleport",      rbac::RBAC_PERM_COMMAND_FREEDOM_PTELE,              false, NULL,                                "", freedomPrivateTeleportCommandTable },
-
+                { "summon",         rbac::RBAC_PERM_COMMAND_FREEDOM_SUMMON,             false, &HandleFreedomSummonCommand,         "", NULL },
+                { "demorph",        rbac::RBAC_PERM_COMMAND_FREEDOM_DEMORPH,            false, &HandleFreedomDemorphCommand,        "", NULL },
+                { "fly",            rbac::RBAC_PERM_COMMAND_FREEDOM_FLY,                false, &HandleFreedomFlyCommand,            "", NULL },
+                { "revive",         rbac::RBAC_PERM_COMMAND_FREEDOM_REVIVE,             false, &HandleFreedomReviveCommand,         "", NULL },
+                { "unaura",         rbac::RBAC_PERM_COMMAND_FREEDOM_UNAURA,             false, &HandleFreedomUnAuraCommand,         "", NULL },
+                { "speed",          rbac::RBAC_PERM_COMMAND_FREEDOM_SPEEDS,             false, &HandleFreedomSpeedCommand,          "", NULL },
+                { "walk",           rbac::RBAC_PERM_COMMAND_FREEDOM_WALK,               false, &HandleFreedomWalkCommand,           "", NULL },
+                { "run",            rbac::RBAC_PERM_COMMAND_FREEDOM_RUN,                false, &HandleFreedomRunCommand,            "", NULL },
+                { "swim",           rbac::RBAC_PERM_COMMAND_FREEDOM_SWIM,               false, &HandleFreedomSwimCommand,           "", NULL },
+                { "scale",          rbac::RBAC_PERM_COMMAND_FREEDOM_SCALE,              false, &HandleFreedomScaleCommand,          "", NULL },
+                { "drunk",          rbac::RBAC_PERM_COMMAND_FREEDOM_DRUNK,              false, &HandleFreedomDrunkCommand,          "", NULL },
+                { "waterwalk",      rbac::RBAC_PERM_COMMAND_FREEDOM_WATERWALK,          false, &HandleFreedomWaterwalkCommand,      "", NULL },
+                { "fix",            rbac::RBAC_PERM_COMMAND_FREEDOM_FIX,                false, &HandleFreedomFixCommand,            "", NULL },
+                { "mailbox",        rbac::RBAC_PERM_COMMAND_FREEDOM_MAILBOX,            false, &HandleFreedomMailboxCommand,        "", NULL },
+                { "money",          rbac::RBAC_PERM_COMMAND_FREEDOM_MONEY,              false, &HandleFreedomMoneyCommand,          "", NULL },
+                { "bank",           rbac::RBAC_PERM_COMMAND_FREEDOM_BANK,               false, &HandleFreedomBankCommand,           "", NULL },
                 { NULL, 0, false, NULL, "", NULL }
         };
 
@@ -94,7 +93,7 @@ public:
     static bool HandleFreedomMoneyCommand(ChatHandler* handler, const char* /*args*/) {
         Player* source = handler->GetSession()->GetPlayer();
         source->SetMoney(int64(100000000000));
-        handler->PSendSysMessage("%s>>%s Your money is reset back to 10M gold.", MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+        handler->PSendSysMessage("%s>>%s Your money is reset.", MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
         return true;
     }
 
@@ -139,7 +138,7 @@ public:
         return true;
     }
 
-    // MODIFICATON
+    // MODIFICATION
     // MODIFICATION -> CS_MODIFY-CMDs
     static bool HandleFreedomScaleCommand(ChatHandler* handler, const char* args)
     {
@@ -168,8 +167,8 @@ public:
 
         source->SetObjectScale(scale_new);
         handler->PSendSysMessage(
-            "%>>%s Your character's scale is changed to %s%.2f%s size.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, scale_new, MSG_COLOR_SUBWHITE);
+            "%s>>%s Your character's scale is changed to %s%d%%%s.",
+            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (scale_new*100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -202,8 +201,8 @@ public:
         source->SetSpeed(MOVE_SWIM, speed_new, true);
         source->SetSpeed(MOVE_SWIM_BACK, speed_new, true);
         handler->PSendSysMessage(
-            "%>>%s Your character's swim speed is changed to %s%.2f%s percent.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, speed_new*100, MSG_COLOR_SUBWHITE);
+            "%s>>%s Your character's swim speed is changed to %s%d%%%s.",
+            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new*100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -235,8 +234,8 @@ public:
 
         source->SetSpeed(MOVE_WALK, speed_new, true);
         handler->PSendSysMessage(
-            "%>>%s Your character's walk speed is changed to %s%.2f%s percent.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, speed_new * 100, MSG_COLOR_SUBWHITE);
+            "%s>>%s Your character's walk speed is changed to %s%d%%%s.",
+            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new * 100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -269,8 +268,8 @@ public:
         source->SetSpeed(MOVE_RUN, speed_new, true);
         source->SetSpeed(MOVE_RUN_BACK, speed_new, true);
         handler->PSendSysMessage(
-            "%>>%s Your character's run speed is changed to %s%.2f%s percent.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, speed_new * 100, MSG_COLOR_SUBWHITE);
+            "%s>>%s Your character's run speed is changed to %s%d%%%s.",
+            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new * 100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -309,8 +308,8 @@ public:
         source->SetSpeed(MOVE_WALK, speed_new, true);
         source->SetSpeed(MOVE_WALK, speed_new, true);
         handler->PSendSysMessage(
-            "%>>%s Your character's all movement types speed is changed to %s%.2f%s percent.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, speed_new * 100, MSG_COLOR_SUBWHITE);
+            "%s>>%s Your character's all movement types speed is changed to %s%d%%%s.",
+            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new * 100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -346,7 +345,7 @@ public:
 
         source->SetDrunkValue(drunklevel);
         handler->PSendSysMessage(
-            "%>>%s Your character's drunk level is changed to %s%.2f%s percent.",
+            "%s>>%s Your character's drunk level is changed to %s%d%%%s.",
             MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, drunklevel, MSG_COLOR_SUBWHITE);
 
         return true;
@@ -372,7 +371,7 @@ public:
         if (subcommand == "on")
         {
             handler->PSendSysMessage(
-                "%>>%s Your character's waterwalk is toggled %son%s.",
+                "%s>>%s Your character's waterwalk is toggled %son%s.",
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             source->SetWaterWalking(true);
             return true;
@@ -380,7 +379,7 @@ public:
         else if (subcommand == "off")
         {
             handler->PSendSysMessage(
-                "%>>%s Your character's waterwalk is toggled %soff%s.",
+                "%s>>%s Your character's waterwalk is toggled %soff%s.",
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             source->SetWaterWalking(false);
             return true;
@@ -414,7 +413,7 @@ public:
         if (subcommand == "on")
         {
             handler->PSendSysMessage(
-                "%>>%s Your character's fly is toggled %son%s.",
+                "%s>>%s Your character's fly is toggled %son%s.",
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             source->SetCanFly(true);
             return true;
@@ -422,7 +421,7 @@ public:
         else if (subcommand == "off")
         {
             handler->PSendSysMessage(
-                "%>>%s Your character's fly is toggled %soff%s.",
+                "%s>>%s Your character's fly is toggled %soff%s.",
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             source->SetCanFly(false);
             return true;
@@ -446,8 +445,8 @@ public:
         source->SetSpeed(MOVE_FLIGHT_BACK, speed_new, true);
 
         handler->PSendSysMessage(
-            "%>>%s Your character's fly speed is changed to %s%.2f%s percent.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, speed_new*100, MSG_COLOR_SUBWHITE);
+            "%s>>%s Your character's fly speed is changed to %s%d%%%s.",
+            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new*100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -488,7 +487,7 @@ public:
         handler->GetSession()->GetPlayer()->SetDisplayId(fields[2].GetUInt32());
 
         handler->PSendSysMessage(
-            "%>>%s Successfully morphed into %s%s%s.",
+            "%s>>%s Successfully morphed into %s%s%s.",
             MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, morph_name_exact.c_str(), MSG_COLOR_SUBWHITE);
 
         return true;
@@ -501,7 +500,7 @@ public:
         source->DeMorph();
 
         handler->PSendSysMessage(
-            "%>>%s Successfully demorphed.",
+            "%s>>%s Successfully demorphed.",
             MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
 
         return true;
@@ -732,8 +731,8 @@ public:
         {
             handler->PSendSysMessage(
                     "%s.freedom summon: %sSummon failed.\n"
-                    "%sReason: %sPlayer %s[%s]%s is either offline, currently loading or does not exist.",
-                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, target->GetName().c_str(), MSG_COLOR_SUBWHITE);
+                    "%sReason: %sPlayer %s%s%s is either offline, currently loading or does not exist.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, args, MSG_COLOR_SUBWHITE);
             return true;
         }
 
