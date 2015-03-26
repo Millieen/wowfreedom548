@@ -794,6 +794,7 @@ public:
     void HandleSetMemberRank(WorldSession* session, uint64 guid, uint64 setterGuid, uint32 rank);
     void HandleAddNewRank(WorldSession* session, std::string const& name);
     void HandleRemoveRank(WorldSession* session, uint8 rankId);
+    void HandleUpdateRank(WorldSession* session, uint32 GuildID, bool RankId);
     void HandleMemberDepositMoney(WorldSession* session, uint64 amount, bool cashFlow = false);
     bool HandleMemberWithdrawMoney(WorldSession* session, uint64 amount, bool repair = false);
     void HandleMemberLogout(WorldSession* session);
@@ -811,11 +812,13 @@ public:
     void SendBankLog(WorldSession* session, uint8 tabId) const;
     void SendBankList(WorldSession* session, uint8 tabId, bool withContent, bool withTabInfo) const;
     void SendGuildXP(WorldSession* session = NULL) const;
+    void SendGuildMOTD(WorldSession* session = NULL) const;
     void SendBankTabText(WorldSession* session, uint8 tabId) const;
     void SendPermissions(WorldSession* session) const;
     void SendMoneyInfo(WorldSession* session) const;
     void SendLoginInfo(WorldSession* session);
     void SendNewsUpdate(WorldSession* session);
+    void SendUpdateRoster(WorldSession* session = NULL);
 
     // Load from DB
     bool LoadFromDB(Field* fields);
