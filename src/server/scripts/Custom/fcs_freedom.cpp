@@ -757,13 +757,31 @@ public:
         target->SetSummonPoint(source->GetMapId(), source->GetPositionX(), source->GetPositionY(), source->GetPositionZ());
 
         WorldPacket data(SMSG_SUMMON_REQUEST, 8 + 4 + 4);
-        data << uint64(source->GetGUID());                    // summoner guid
+        ObjectGuid SummonerGUID = source->GetGUID();
+
+        data.WriteBit(SummonerGUID[0]);
+        data.WriteBit(SummonerGUID[6]);
+        data.WriteBit(SummonerGUID[3]);
+        data.WriteBit(SummonerGUID[2]);
+        data.WriteBit(SummonerGUID[1]);
+        data.WriteBit(SummonerGUID[4]);
+        data.WriteBit(SummonerGUID[7]);
+        data.WriteBit(SummonerGUID[5]);
+
+        data.WriteByteSeq(SummonerGUID[4]);
         data << uint32(source->GetZoneId());                  // summoner zone
+        data.WriteByteSeq(SummonerGUID[7]);
+        data.WriteByteSeq(SummonerGUID[3]);
+        data.WriteByteSeq(SummonerGUID[1]);
         data << uint32(MAX_PLAYER_SUMMON_DELAY*IN_MILLISECONDS); // auto decline after msecs
+        data.WriteByteSeq(SummonerGUID[2]);
+        data.WriteByteSeq(SummonerGUID[6]);
+        data.WriteByteSeq(SummonerGUID[5]);
+        data.WriteByteSeq(SummonerGUID[0]);
         target->GetSession()->SendPacket(&data);
 
         handler->PSendSysMessage(
-                "%s>>%s Successfully sent a summon request to player %s[%s].", 
+                "%s>>%s Successfully sent a summon request to player %s%s.", 
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, target->GetName().c_str());
 
         return true;
