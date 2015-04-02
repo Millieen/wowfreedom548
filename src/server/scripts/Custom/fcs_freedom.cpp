@@ -8,6 +8,7 @@
 #include "World.h"
 #include "Player.h"
 #include "Opcodes.h"
+#include "MovementStructures.h"
 
 // helper function to replace all occurance strings with another string
 void replaceAll(std::string &str, std::string from, std::string to)
@@ -375,10 +376,14 @@ public:
         }
         else if (subcommand == "off")
         {
+            //SetWaterWalking does not turn off properly, WORKAROUND: sending packets directly
+            Unit* source_unit = handler->GetSession()->GetPlayer()->ToUnit();
+            source_unit->RemoveUnitMovementFlag(MOVEMENTFLAG_WATERWALKING);
+            Movement::PacketSender(source_unit, SMSG_SPLINE_MOVE_SET_LAND_WALK, SMSG_MOVE_LAND_WALK).Send();
+
             handler->PSendSysMessage(
                 "%s>>%s Your character's waterwalk is toggled %soff%s.",
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
-            source->SetWaterWalking(false);
             return true;
         }
 
@@ -417,10 +422,16 @@ public:
         }
         else if (subcommand == "off")
         {
+            //SetCanFly not turning off properly, WORKAROUND: sending packets directly
+            Unit* source_unit = handler->GetSession()->GetPlayer()->ToUnit();
+            source_unit->RemoveUnitMovementFlag(MOVEMENTFLAG_CAN_FLY | MOVEMENTFLAG_MASK_MOVING_FLY);
+            if (!source_unit->IsLevitating())
+                source_unit->SetFall(true);
+            Movement::PacketSender(source_unit, SMSG_SPLINE_MOVE_UNSET_FLYING, SMSG_MOVE_UNSET_CAN_FLY).Send();
+
             handler->PSendSysMessage(
                 "%s>>%s Your character's fly is toggled %soff%s.",
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
-            source->SetCanFly(false);
             return true;
         }
 
