@@ -65,7 +65,7 @@ public:
                 { "drunk",          rbac::RBAC_PERM_COMMAND_FREEDOM_DRUNK,              false, &HandleFreedomDrunkCommand,          "", NULL },
                 { "waterwalk",      rbac::RBAC_PERM_COMMAND_FREEDOM_WATERWALK,          false, &HandleFreedomWaterwalkCommand,      "", NULL },
                 { "fix",            rbac::RBAC_PERM_COMMAND_FREEDOM_FIX,                false, &HandleFreedomFixCommand,            "", NULL },
-                { "mailbox",        rbac::RBAC_PERM_COMMAND_FREEDOM_MAILBOX,            false, &HandleFreedomMailboxCommand,        "", NULL },
+                //{ "mailbox",        rbac::RBAC_PERM_COMMAND_FREEDOM_MAILBOX,            false, &HandleFreedomMailboxCommand,        "", NULL }, TODO: implement mailbox command when SMSG_SHOW_MAILBOX or similar opcode is implemented
                 { "money",          rbac::RBAC_PERM_COMMAND_FREEDOM_MONEY,              false, &HandleFreedomMoneyCommand,          "", NULL },
                 { "bank",           rbac::RBAC_PERM_COMMAND_FREEDOM_BANK,               false, &HandleFreedomBankCommand,           "", NULL },
                 { NULL, 0, false, NULL, "", NULL }
@@ -132,9 +132,6 @@ public:
     }
 
     static bool HandleFreedomMailboxCommand(ChatHandler* handler, const char* /*args*/) {
-        Player* source = handler->GetSession()->GetPlayer();
-        WorldPacket data(SMSG_SHOW_BANK, 8);
-        source->GetSession()->SendPacket(&data);
         return true;
     }
 
