@@ -390,19 +390,19 @@ public:
                 zoneName = zone->area_name;
         }
 
-        if (target) 
+        if (map) 
         {
-            handler->PSendSysMessage("> Map: %s", map->name);
-            handler->PSendSysMessage("> Zone: %s", (!zoneName.empty() ? zoneName.c_str() : "<Unknown>"));
-            handler->PSendSysMessage("> Area: %s", (!areaName.empty() ? areaName.c_str() : "<Unknown>"));
+            handler->PSendSysMessage("> Map: %s (ID: %u)", map->name, mapId);
+            handler->PSendSysMessage("> Zone: %s (ID: %u)", (!zoneName.empty() ? zoneName.c_str() : "<Unknown>"), area ? area->zone : 0);
+            handler->PSendSysMessage("> Area: %s (ID: %u)", (!areaName.empty() ? areaName.c_str() : "<Unknown>"), area ? area->ID : 0);
         }
 
 
         // Output XVII. - XVIX. if they are not empty
         if (!guildName.empty())
         {
-            handler->PSendSysMessage("> Guild: %s (Id: %u)", guildName.c_str(), guildId);
-            handler->PSendSysMessage("> > Rank: %s", guildRank.c_str());
+            handler->PSendSysMessage("> Guild: %s (ID: %u)", guildName.c_str(), guildId);
+            handler->PSendSysMessage("> > Rank: %s (ID: %u)", guildRank.c_str(), (uint32) guildRankId);
             if (!note.empty())
                 handler->PSendSysMessage("> > Note: %s", note.c_str());
             if (!officeNote.empty())
