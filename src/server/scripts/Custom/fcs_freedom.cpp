@@ -363,7 +363,7 @@ public:
 
         Player* source = handler->GetSession()->GetPlayer();
 
-        // disallow adding morphs with names identical to morph subcommands
+        // on & off
         std::string subcommand = args;
         std::transform(subcommand.begin(), subcommand.end(), subcommand.begin(), ::tolower);
         if (subcommand == "on")
@@ -409,7 +409,7 @@ public:
         
         Player* source = handler->GetSession()->GetPlayer();
         
-        // disallow adding morphs with names identical to morph subcommands
+        // on & off
         std::string subcommand = args;
         std::transform(subcommand.begin(), subcommand.end(), subcommand.begin(), ::tolower);
         if (subcommand == "on")
