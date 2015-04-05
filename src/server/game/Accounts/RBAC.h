@@ -708,6 +708,9 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_FREEDOM_FLY                            = 1019,
     RBAC_PERM_COMMAND_FREEDOM_TELE_MODIFY                    = 1020,
     RBAC_PERM_COMMAND_FREEDOM_MORPH_MODIFY                   = 1021,
+    RBAC_PERM_COMMAND_FREEDOM_MORPH_LIST                     = 1022,
+    RBAC_PERM_COMMAND_FREEDOM_PTELE_LIST                     = 1023,
+    RBAC_PERM_COMMAND_FREEDOM_TELE_LIST                      = 1024,
 
     // CUSTOM GM CMDS           2000 <= X < 3000
 
