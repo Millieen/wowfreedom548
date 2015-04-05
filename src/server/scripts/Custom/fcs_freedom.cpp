@@ -21,6 +21,15 @@ void replaceAll(std::string &str, std::string from, std::string to)
     }
 }
 
+bool isSpecialParam(const std::string param)
+{
+    if (param.length() < 3)
+        return false;
+    if (param[0] != '-' || param[1] != '-')
+        return false;
+    return true;
+}
+
 class freedom_commandscript : public CommandScript
 {
 public:
@@ -31,6 +40,7 @@ public:
         static ChatCommand freedomMorphCommandTable[] = {
                 { "add",            rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH_MODIFY,       false, &HandleFreedomMorphAddCommand,       "", NULL },
                 { "delete",         rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH_MODIFY,       false, &HandleFreedomMorphDelCommand,       "", NULL },
+                { "list",           rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH_LIST,         false, &HandleFreedomMorphListCommand,      "", NULL },
                 { "",               rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH,              false, &HandleFreedomMorphCommand,          "", NULL },
                 { NULL, 0, false, NULL, "", NULL }
         };
@@ -84,10 +94,10 @@ public:
     * ----- COMMAND HANDLES -----
     * =========================== 
     * Color guide:
-    * MSG_COLOR_CHOCOLATE - message title/name/source.
-    * MSG_COLOR_RED       - error message.
-    * MSG_COLOR_SUBWHITE  - description, normal text.
-    * MSG_COLOR_ORANGEY   - tag name, link name, target/source name, for exclamation.
+    * |cFFD2691E MSG_COLOR_CHOCOLATE - message title/name/source.
+    * |cFFFF0000 MSG_COLOR_RED       - error message.
+    * |cFFBBBBBB MSG_COLOR_SUBWHITE  - description, normal text.
+    * |cFFFF4500 MSG_COLOR_ORANGEY   - tag name, link name, target/source name, for exclamation.
     */
     
     // UTILITIES
@@ -143,9 +153,9 @@ public:
         if (!*args)
         {
             handler->PSendSysMessage(
-                "%s.freedom scale: %sPlease specify a decimal number.\n"
-                "%sSyntax: %s.freedom scale $newScale",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                    "%s.freedom scale: %sPlease specify a decimal number.\n"
+                    "%sSyntax: %s.freedom scale $newScale",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
 
@@ -157,16 +167,16 @@ public:
         if (scale_new > max || scale_new < min)
         {
             handler->PSendSysMessage(
-                "%s.freedom scale: %sIncorrect value.\n"
-                "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE);
+                    "%s.freedom scale: %sIncorrect value.\n"
+                    "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE);
             return true;
         }
 
         source->SetObjectScale(scale_new);
         handler->PSendSysMessage(
-            "%s>>%s Your character's scale is changed to %s%d%%%s.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (scale_new*100), MSG_COLOR_SUBWHITE);
+                "%s>>%s Your character's scale is changed to %s%d%%%s.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (scale_new*100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -176,9 +186,9 @@ public:
         if (!*args)
         {
             handler->PSendSysMessage(
-                "%s.freedom swim: %sPlease specify a decimal number.\n"
-                "%sSyntax: %s.freedom swim $newSpeed",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                    "%s.freedom swim: %sPlease specify a decimal number.\n"
+                    "%sSyntax: %s.freedom swim $newSpeed",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
 
@@ -190,17 +200,17 @@ public:
         if (speed_new > max || speed_new < min)
         {
             handler->PSendSysMessage(
-                "%s.freedom swim: %sIncorrect value.\n"
-                "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE);
+                    "%s.freedom swim: %sIncorrect value.\n"
+                    "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE);
             return true;
         }
 
         source->SetSpeed(MOVE_SWIM, speed_new, true);
         source->SetSpeed(MOVE_SWIM_BACK, speed_new, true);
         handler->PSendSysMessage(
-            "%s>>%s Your character's swim speed is changed to %s%d%%%s.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new*100), MSG_COLOR_SUBWHITE);
+                "%s>>%s Your character's swim speed is changed to %s%d%%%s.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new*100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -210,9 +220,9 @@ public:
         if (!*args)
         {
             handler->PSendSysMessage(
-                "%s.freedom walk: %sPlease specify a decimal number.\n"
-                "%sSyntax: %s.freedom walk $newSpeed",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                    "%s.freedom walk: %sPlease specify a decimal number.\n"
+                    "%sSyntax: %s.freedom walk $newSpeed",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
 
@@ -224,16 +234,16 @@ public:
         if (speed_new > max || speed_new < min)
         {
             handler->PSendSysMessage(
-                "%s.freedom walk: %sIncorrect value.\n"
-                "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE);
+                    "%s.freedom walk: %sIncorrect value.\n"
+                    "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE);
             return true;
         }
 
         source->SetSpeed(MOVE_WALK, speed_new, true);
         handler->PSendSysMessage(
-            "%s>>%s Your character's walk speed is changed to %s%d%%%s.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new * 100), MSG_COLOR_SUBWHITE);
+                "%s>>%s Your character's walk speed is changed to %s%d%%%s.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new * 100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -243,9 +253,9 @@ public:
         if (!*args)
         {
             handler->PSendSysMessage(
-                "%s.freedom run: %sPlease specify a decimal number.\n"
-                "%sSyntax: %s.freedom run $newSpeed",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                    "%s.freedom run: %sPlease specify a decimal number.\n"
+                    "%sSyntax: %s.freedom run $newSpeed",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
 
@@ -257,17 +267,17 @@ public:
         if (speed_new > max || speed_new < min)
         {
             handler->PSendSysMessage(
-                "%s.freedom run: %sIncorrect value.\n"
-                "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE);
+                    "%s.freedom run: %sIncorrect value.\n"
+                    "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE);
             return true;
         }
 
         source->SetSpeed(MOVE_RUN, speed_new, true);
         source->SetSpeed(MOVE_RUN_BACK, speed_new, true);
         handler->PSendSysMessage(
-            "%s>>%s Your character's run speed is changed to %s%d%%%s.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new * 100), MSG_COLOR_SUBWHITE);
+                "%s>>%s Your character's run speed is changed to %s%d%%%s.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new * 100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -277,9 +287,9 @@ public:
         if (!*args)
         {
             handler->PSendSysMessage(
-                "%s.freedom speed: %sPlease specify a decimal number.\n"
-                "%sSyntax: %s.freedom speed $newSpeed",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                    "%s.freedom speed: %sPlease specify a decimal number.\n"
+                    "%sSyntax: %s.freedom speed $newSpeed",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
 
@@ -291,9 +301,9 @@ public:
         if (speed_new > max || speed_new < min)
         {
             handler->PSendSysMessage(
-                "%s.freedom speed: %sIncorrect value.\n"
-                "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE);
+                    "%s.freedom speed: %sIncorrect value.\n"
+                    "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE);
             return true;
         }
         
@@ -306,8 +316,8 @@ public:
         source->SetSpeed(MOVE_WALK, speed_new, true);
         source->SetSpeed(MOVE_WALK, speed_new, true);
         handler->PSendSysMessage(
-            "%s>>%s Your character's all movement types speed is changed to %s%d%%%s.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new * 100), MSG_COLOR_SUBWHITE);
+                "%s>>%s Your character's all movement types speed is changed to %s%d%%%s.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new * 100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -317,9 +327,9 @@ public:
         if (!*args)
         {
             handler->PSendSysMessage(
-                "%s.freedom drunk: %sPlease specify a number between 0 and 100.\n"
-                "%sSyntax: %s.freedom speed $newSpeed",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                    "%s.freedom drunk: %sPlease specify a number between 0 and 100.\n"
+                    "%sSyntax: %s.freedom speed $newSpeed",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
 
@@ -332,9 +342,9 @@ public:
         if (drunklevel == 0 && input[0] != '0')
         {
             handler->PSendSysMessage(
-                "%s.freedom drunk: %sPlease specify a number between 0 and 100.\n"
-                "%sSyntax: %s.freedom speed $newSpeed",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                    "%s.freedom drunk: %sPlease specify a number between 0 and 100.\n"
+                    "%sSyntax: %s.freedom speed $newSpeed",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
 
@@ -343,8 +353,8 @@ public:
 
         source->SetDrunkValue(drunklevel);
         handler->PSendSysMessage(
-            "%s>>%s Your character's drunk level is changed to %s%d%%%s.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, drunklevel, MSG_COLOR_SUBWHITE);
+                "%s>>%s Your character's drunk level is changed to %s%d%%%s.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, drunklevel, MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -355,9 +365,9 @@ public:
         if (!*args)
         {
             handler->PSendSysMessage(
-                "%s.freedom waterwalk: %sPlease specify %son%s or %soff%s.\n"
-                "%sSyntax: %s.freedom waterwalk $onOrOff",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                    "%s.freedom waterwalk: %sPlease specify %son%s or %soff%s.\n"
+                    "%sSyntax: %s.freedom waterwalk $onOrOff",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
 
@@ -369,8 +379,8 @@ public:
         if (subcommand == "on")
         {
             handler->PSendSysMessage(
-                "%s>>%s Your character's waterwalk is toggled %son%s.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+                    "%s>>%s Your character's waterwalk is toggled %son%s.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             source->SetWaterWalking(true);
             return true;
         }
@@ -382,16 +392,16 @@ public:
             Movement::PacketSender(source_unit, SMSG_SPLINE_MOVE_SET_LAND_WALK, SMSG_MOVE_LAND_WALK).Send();
 
             handler->PSendSysMessage(
-                "%s>>%s Your character's waterwalk is toggled %soff%s.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+                    "%s>>%s Your character's waterwalk is toggled %soff%s.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             return true;
         }
 
         // did not specify ON or OFF value
         handler->PSendSysMessage(
-            "%s.freedom waterwalk: %sPlease specify %son%s or %soff%s.\n"
-            "%sSyntax: %s.freedom waterwalk $onOrOff",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                "%s.freedom waterwalk: %sPlease specify %son%s or %soff%s.\n"
+                "%sSyntax: %s.freedom waterwalk $onOrOff",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
 
         return true;
     }
@@ -401,9 +411,9 @@ public:
         if (!*args)
         {
             handler->PSendSysMessage(
-                "%s.freedom fly: %sPlease specify a decimal number or toggle sub-command %son%s / %soff%s.\n"
-                "%sSyntax: %s.freedom fly $onOrOffOrNewSpeed",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                    "%s.freedom fly: %sPlease specify a decimal number or toggle sub-command %son%s / %soff%s.\n"
+                    "%sSyntax: %s.freedom fly $onOrOffOrNewSpeed",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
         
@@ -415,8 +425,8 @@ public:
         if (subcommand == "on")
         {
             handler->PSendSysMessage(
-                "%s>>%s Your character's fly is toggled %son%s.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+                    "%s>>%s Your character's fly is toggled %son%s.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             source->SetCanFly(true);
             return true;
         }
@@ -430,8 +440,8 @@ public:
             Movement::PacketSender(source_unit, SMSG_SPLINE_MOVE_UNSET_FLYING, SMSG_MOVE_UNSET_CAN_FLY).Send();
 
             handler->PSendSysMessage(
-                "%s>>%s Your character's fly is toggled %soff%s.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+                    "%s>>%s Your character's fly is toggled %soff%s.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             return true;
         }
 
@@ -442,10 +452,10 @@ public:
         if (speed_new > max || speed_new < min)
         {
             handler->PSendSysMessage(
-                "%s.freedom fly: %sIncorrect value.\n"
-                "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s if changing speed.\n"
-                "%sHint: %sIf you wish to toggle your speed on or off, simply use either %s.f fly on %sor %s.f fly off%s command.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+                    "%s.freedom fly: %sIncorrect value.\n"
+                    "%sReason: %sSpecified value must be between %s%.2f%s and %s%.2f%s if changing speed.\n"
+                    "%sHint: %sIf you wish to toggle your speed on or off, simply use either %s.f fly on %sor %s.f fly off%s command.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, min, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, max, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             return true;
         }
 
@@ -453,8 +463,8 @@ public:
         source->SetSpeed(MOVE_FLIGHT_BACK, speed_new, true);
 
         handler->PSendSysMessage(
-            "%s>>%s Your character's fly speed is changed to %s%d%%%s.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new*100), MSG_COLOR_SUBWHITE);
+                "%s>>%s Your character's fly speed is changed to %s%d%%%s.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (int) (speed_new*100), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -465,10 +475,10 @@ public:
         if (!*args)
         {
             handler->PSendSysMessage(
-                "%s.freedom morph: %sPlease specify a name of one of this character's morphs.\n"
-                "%sSyntax: %s.freedom morph $morphName\n"
-                "%sHint: %sUse %s.list morph $namePart %scommand to search for available morphs for this character.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+                    "%s.freedom morph: %sPlease specify a name of one of this character's morphs.\n"
+                    "%sSyntax: %s.freedom morph $morphName\n"
+                    "%sHint: %sUse %s.freedom morph list %scommand to search for available morphs for this character.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             return true;
         }
 
@@ -484,19 +494,19 @@ public:
         if (!result)
         {
             handler->PSendSysMessage(
-                "%s.freedom morph: %sMorph not found.\n"
-                "%sReason: %sNo such morph for this character was found.\n"
-                "%sHint: %sUse %s.list morph $namePart %scommand to search for available morphs for this character. Also, remember that this command requires full name of the morph not just a name-part.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+                    "%s.freedom morph: %sMorph not found.\n"
+                    "%sReason: %sNo such morph with that exact name for this character was found.\n"
+                    "%sHint: %sUse %s.freedom morph list %scommand to search for available morphs for this character.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             return true;
         }
 
         Field * fields = result->Fetch();
-        handler->GetSession()->GetPlayer()->SetDisplayId(fields[2].GetUInt32());
+        source->SetDisplayId(fields[2].GetUInt32());
 
         handler->PSendSysMessage(
-            "%s>>%s Successfully morphed into %s%s%s.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, morph_name_exact.c_str(), MSG_COLOR_SUBWHITE);
+                "%s>>%s Successfully morphed into %s%s%s.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, morph_name_exact.c_str(), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -508,8 +518,8 @@ public:
         source->DeMorph();
 
         handler->PSendSysMessage(
-            "%s>>%s Successfully demorphed.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+                "%s>>%s Successfully demorphed.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -519,9 +529,9 @@ public:
         if (!*args)
         {
             handler->PSendSysMessage(
-                "%s.freedom morph add: %sPlease specify a name and a display ID of the new morph for the target character (can specify player name as third parameter to find the target).\n"
-                "%sSyntax: %s.freedom morph add $morphName $displayId [$playerName]",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                    "%s.freedom morph add: %sPlease specify a name and a display ID of the new morph for the target character (can specify player name as third parameter to find the target).\n"
+                    "%sSyntax: %s.freedom morph add $morphName $displayId [$playerName]",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
         
@@ -534,39 +544,33 @@ public:
         if (!params[1])
         {
             handler->PSendSysMessage(
-                "%s.freedom morph add: %sPlease specify a name and a display ID of the new morph for the target character (can specify player name as third parameter to find the target).\n"
-                "%sSyntax: %s.freedom morph add $morphName $displayId [$playerName]",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
-            return true;
-        }
-
-        // disallow adding morphs with names identical to morph subcommands
-        std::string temp = params[0];
-        std::transform(temp.begin(), temp.end(), temp.begin(), ::tolower);
-        if (temp == "add")
-        {
-            handler->PSendSysMessage(
-                "%s.freedom morph add: %sIllegal name.\n"
-                "%sReason: %sYou cannot add morphs with names matching the morph sub-commands.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+                    "%s.freedom morph add: %sPlease specify a name and a display ID of the new morph for the target character (can specify player name as third parameter to find the target).\n"
+                    "%sSyntax: %s.freedom morph add $morphName $displayId [$playerName]",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
 
         // attempt to get valid target, priority to third parameter instead of in-game targeting
-        uint32 char_guid;
+        Player* source = handler->GetSession()->GetPlayer();
         Player * target = NULL;
+        std::string player_name = "Target";
+        std::string morph_name_exact = params[0];
+        uint32 morph_display_id = atol(params[1]);
+        uint32 char_guid = NULL;
         PreparedStatement * stmt;
 
         if (!params[2]) // via DB
         {
             target = handler->getSelectedPlayer();
-            if (!target)
-                char_guid = NULL;
-            else
+            if (target)
+            {
                 char_guid = target->GetGUIDLow();
+                player_name = target->GetName();
+            }
         }
         else // via in-game target
         {
+            player_name = params[2];
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_GUID_BY_NAME);
             stmt->setString(0, params[2]);
             PreparedQueryResult result = CharacterDatabase.Query(stmt);
@@ -575,24 +579,25 @@ public:
                 Field * fields = result->Fetch();
                 char_guid = fields[0].GetUInt32();
             }
-            else
-            {
-                char_guid = NULL;
-            }
         }
 
         if (!char_guid)
         {
             handler->PSendSysMessage(
-                "%s.freedom morph add: %sPlayer not found.\n"
-                "%sReason: %sTarget is not a player or no character with such name exists.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+                    "%s.freedom morph add: %sPlayer not found.\n"
+                    "%sReason: %s%s%s is not a player or no character with such name exists.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, player_name.c_str(), MSG_COLOR_SUBWHITE);
             return true;
         }
 
-        Player* source = handler->GetSession()->GetPlayer();
-        std::string morph_name_exact = params[0];
-        uint32 morph_display_id = atol(params[1]);
+        if (!morph_display_id)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom morph add: %sInvalid display ID.\n"
+                "%sReason: %sDisplay ID (second parameter) you supplied was invalid.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+            return true;
+        }
 
         // check for duplicate morph name
         stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_MORPH_EXACT);
@@ -603,9 +608,9 @@ public:
         if (result)
         {
             handler->PSendSysMessage(
-                "%s.freedom morph add: %sAlready exists.\n"
-                "%sReason: %sTarget player already has a morph under that name.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+                    "%s.freedom morph add: %sAlready exists.\n"
+                    "%sReason: %s%s%s already has a morph under that name.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, player_name.c_str(), MSG_COLOR_SUBWHITE);
             return true;
         }
 
@@ -623,8 +628,8 @@ public:
                     MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, handler->GetNameLink().c_str(), MSG_COLOR_ORANGEY, morph_name_exact.c_str(), MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, morph_display_id, MSG_COLOR_SUBWHITE);
 
         handler->PSendSysMessage(
-                "%s>>%s Successfully added a morph under the name of %s%s%s and display id of %s%u%s to %s%s%s player.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, morph_name_exact.c_str(), MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, morph_display_id, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (target ? target->GetName().c_str() : "target"), MSG_COLOR_SUBWHITE);
+                "%s>>%s Successfully added a morph under the name of %s%s%s and display id of %s%u%s to %s%s%s.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, morph_name_exact.c_str(), MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, morph_display_id, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, player_name.c_str(), MSG_COLOR_SUBWHITE);
 
         return true;
     }
@@ -634,32 +639,37 @@ public:
         if (!*args)
         {
             handler->PSendSysMessage(
-                "%s.freedom morph delete: %sPlease specify a name of the morph of the target character (can specify player name as second parameter to find the target).\n"
-                "%sSyntax: %s.freedom morph delete $morphName [$playerName]",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+                    "%s.freedom morph delete: %sPlease specify a name of the morph of the target character (can specify player name as second parameter to find the target).\n"
+                    "%sSyntax: %s.freedom morph delete $morphName [$playerName]",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
 
         // extract parameters
-        char * params[3];
+        char * params[2];
         params[0] = strtok((char *)args, " ");
         params[1] = strtok(NULL, " ");
 
         // attempt to get valid target, priority to third parameter instead of in-game targeting
-        uint32 char_guid;
+        Player* source = handler->GetSession()->GetPlayer();
         Player * target = NULL;
+        uint32 char_guid = NULL;
+        std::string player_name = "Target";
+        std::string morph_name_exact = params[0];
         PreparedStatement * stmt;
 
-        if (!params[1]) // via DB
+        if (!params[1]) // via in-game target
         {
             target = handler->getSelectedPlayer();
-            if (!target)
-                char_guid = NULL;
-            else
+            if (target)
+            {
                 char_guid = target->GetGUIDLow();
+                player_name = target->GetName();
+            }
         }
-        else // via in-game target
+        else // via DB
         {
+            player_name = params[1];
             stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_GUID_BY_NAME);
             stmt->setString(0, params[1]);
             PreparedQueryResult result = CharacterDatabase.Query(stmt);
@@ -668,23 +678,16 @@ public:
                 Field * fields = result->Fetch();
                 char_guid = fields[0].GetUInt32();
             }
-            else
-            {
-                char_guid = NULL;
-            }
         }
 
         if (!char_guid)
         {
             handler->PSendSysMessage(
-                "%s.freedom morph delete: %sPlayer not found.\n"
-                "%sReason: %sTarget is not a player or no character with such name exists.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+                    "%s.freedom morph delete: %sPlayer not found.\n"
+                    "%sReason: %s%s%s is not a player or no character with such name exists.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, player_name.c_str(), MSG_COLOR_SUBWHITE);
             return true;
         }
-
-        Player* source = handler->GetSession()->GetPlayer();
-        std::string morph_name_exact = params[0];
 
         // check for duplicate morph name
         stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_MORPH_EXACT);
@@ -695,9 +698,10 @@ public:
         if (!result)
         {
             handler->PSendSysMessage(
-                "%s.freedom morph delete: %sNot found.\n"
-                "%sReason: %sTarget player does not have a morph under that name.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+                    "%s.freedom morph delete: %sNot found.\n"
+                    "%sReason: %s%s%s does not have a morph under that name.\n"
+                    "%sHint: %sUse %s.freedom morph list --p [$playerName] %scommand to search for assigned morphs of the target or $playerName character.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, player_name.c_str(), MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             return true;
         }
 
@@ -709,12 +713,165 @@ public:
 
         if (handler->needReportToTarget(target))
             ChatHandler(target->GetSession()).PSendSysMessage(
-            "%s>>%s Player %s removed a morph under the name of %s%s%s from you.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, handler->GetNameLink().c_str(), MSG_COLOR_ORANGEY, morph_name_exact.c_str(), MSG_COLOR_SUBWHITE);
+                    "%s>>%s Player %s removed a morph under the name of %s%s%s from you.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, handler->GetNameLink().c_str(), MSG_COLOR_ORANGEY, morph_name_exact.c_str(), MSG_COLOR_SUBWHITE);
 
         handler->PSendSysMessage(
-            "%s>>%s Successfully removed a morph under the name of %s%s%s from %s%s%s player.",
-            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, morph_name_exact.c_str(), MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, (target ? target->GetName().c_str() : "target"), MSG_COLOR_SUBWHITE);
+                "%s>>%s Successfully removed a morph under the name of %s%s%s from %s%s%s.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, morph_name_exact.c_str(), MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, player_name.c_str(), MSG_COLOR_SUBWHITE);
+
+        return true;
+    }
+
+    static bool HandleFreedomMorphListCommand(ChatHandler* handler, const char* args)
+    {
+        //if (!*args)
+        //{
+        //    handler->PSendSysMessage(
+        //            "%s.freedom morph list: %sList all your character's morphs.\n"
+        //            "%sSyntax: %s.freedom morph list",
+        //            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+        //    handler->PSendSysMessage(
+        //            "%sSpecial Parameters: %s--f $morphNamePart%s, %s--filter $morphNamePart%s : Makes the command to filter listed morphs, showing ones who start with $morphNamePart (case-insensitive).",
+        //            MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+        //    if (handler->GetSession()->GetSecurity() >= SEC_GAMEMASTER) 
+        //    {
+        //        handler->PSendSysMessage(
+        //                "%sSpecial Parameters: %s--p [$playerName]%s, %s--player [$playerName]%s : Makes the command to list targeted or $playerName morphs instead.",
+        //                MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+        //    }
+        //    return true;
+        //}
+
+        // extract parameters
+        char * params[4];
+        params[0] = strtok((char *)args, " ");
+        params[1] = strtok(NULL, " ");
+        params[2] = strtok(NULL, " ");
+        params[3] = strtok(NULL, " ");
+        Player * target = handler->GetSession()->GetPlayer();
+        uint32 char_guid = target->GetGUIDLow();
+        PreparedStatement * stmt;
+        std::string morph_name_part = "";
+        std::string player_name = target->GetName();
+        int param_index;
+
+        // special parameter switches, true: not used yet, false: used
+        bool sp_player = true;
+        bool sp_filter = true;
+
+        // check & set special parameters
+        for (param_index = 0; param_index < 4;)
+        {
+            if (!params[param_index])
+                break;
+            std::string temp = params[param_index];
+            if (!isSpecialParam(temp))
+                break;
+
+            if ((temp == "--p" || temp == "--player") && handler->GetSession()->GetSecurity() >= SEC_GAMEMASTER && sp_player)
+            {
+                param_index++;
+                if (!params[param_index] || isSpecialParam(params[param_index])) // via in-game target
+                {
+                    char_guid = NULL;
+                    target = handler->getSelectedPlayer();
+                    if (!target)
+                        break;
+                    else
+                        char_guid = target->GetGUIDLow();
+                    sp_player = false;
+                    player_name = target->GetName();
+                    continue;
+                }
+                else // via DB
+                {
+                    char_guid = NULL;
+                    player_name = params[param_index];
+
+                    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_GUID_BY_NAME);
+                    stmt->setString(0, params[param_index]);
+                    PreparedQueryResult result = CharacterDatabase.Query(stmt);
+                    if (result)
+                    {
+                        Field * fields = result->Fetch();
+                        char_guid = fields[0].GetUInt32();
+                        target = NULL;
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    sp_player = false;
+                }
+            }
+            else if ((temp == "--f" || temp == "--filter") && sp_filter)
+            {
+                param_index++;
+                if (!params[param_index] || isSpecialParam(params[param_index]))
+                {
+                    handler->PSendSysMessage(
+                            "%s.freedom morph list [--filter]: %sMissing argument.\n"
+                            "%sReason: %sSpecial parameter %s--filter%s requires an argument followed after it.",
+                            MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+                    return true;
+                }
+
+                morph_name_part = params[param_index];
+                replaceAll(morph_name_part, "%", "\\%"); //escape inputted % wildcards
+                replaceAll(morph_name_part, "_", "\\_"); //escape inputted _ wildcards
+
+                sp_filter = false;
+            }
+            else
+            {
+                handler->PSendSysMessage(
+                        "%s.freedom morph list: %sInvalid special parameter.\n"
+                        "%sReason: %sSpecial parameter (parameter which starts with %s--%s) you used was incorrect (already used or no such special parameter is available).\n"
+                        "%sHint: %sRemember that special parameters with their arguments have to be entered before command's normal parameters and you can't enter same special parameter twice!",
+                        MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+                return true;
+            }
+
+            param_index++;
+        }
+        
+        if (!char_guid)
+        {
+            handler->PSendSysMessage(
+                    "%s.freedom morph list [--player]: %sPlayer not found.\n"
+                    "%sReason: %sTarget is not a player or no character with such name exists.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        // check for duplicate morph name
+        morph_name_part += "%";
+        stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_MORPH);
+        stmt->setString(0, morph_name_part);
+        stmt->setUInt32(1, char_guid);
+        PreparedQueryResult result = WorldDatabase.Query(stmt);
+
+        if (!result)
+        {
+            handler->PSendSysMessage(
+                    "%s>>%s No morphs found.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        handler->PSendSysMessage(
+                "%s>>%s Listing %s%u%s morph(s) for character %s%s%s...",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, uint32(result->GetRowCount()), MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, player_name.c_str(), MSG_COLOR_SUBWHITE);
+        
+        do 
+        {
+            Field * fields = result->Fetch();
+            handler->PSendSysMessage(
+            "%s%u - %s%s",
+            MSG_COLOR_SUBWHITE, fields[2].GetUInt32(), MSG_COLOR_ORANGEY, fields[1].GetCString());
+        } while (result->NextRow());
 
         return true;
     }
@@ -823,7 +980,7 @@ public:
         }
 
         // refine query parameter for LIKE statement
-        replaceAll(tele_name_start, "%", "\\%"); //disable inputted % wildcards
+        replaceAll(tele_name_start, "%%", "\\%%"); //disable inputted % wildcards
         replaceAll(tele_name_start, "_", "\\_"); //disable inputted _ wildcards
         tele_name_start += "%"; // ensure that tele_name_start can end with anything
 
