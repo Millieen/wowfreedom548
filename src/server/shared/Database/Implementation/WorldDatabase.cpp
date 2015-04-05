@@ -104,6 +104,7 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_INS_FREEDOM_PRIVATE_TELE, "INSERT INTO freedom_tele_private (position_x, position_y, position_z, orientation, map, name, owner_uid) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(WORLD_DEL_FREEDOM_PRIVATE_TELE, "DELETE FROM freedom_tele_private WHERE name = ? AND owner_uid = ?", CONNECTION_ASYNC);
     PrepareStatement(WORLD_SEL_FREEDOM_MORPH_EXACT, "SELECT guid, name, display_id, gm_uid FROM freedom_morph WHERE name = ? AND guid = ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_SEL_FREEDOM_MORPH, "SELECT guid, name, display_id, gm_uid FROM freedom_morph WHERE name LIKE ? AND guid = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_INS_FREEDOM_MORPH, "INSERT INTO freedom_morph (guid, name, display_id, gm_uid) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(WORLD_DEL_FREEDOM_MORPH, "DELETE FROM freedom_morph WHERE name = ? AND guid = ?", CONNECTION_ASYNC);
 
