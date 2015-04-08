@@ -38,14 +38,15 @@ public:
     ChatCommand* GetCommands() const OVERRIDE
     {
         static ChatCommand freedomMorphCommandTable[] = {
+                { "list",           rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH_LIST,         false, &HandleFreedomMorphListCommand,      "", NULL },
                 { "add",            rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH_MODIFY,       false, &HandleFreedomMorphAddCommand,       "", NULL },
                 { "delete",         rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH_MODIFY,       false, &HandleFreedomMorphDelCommand,       "", NULL },
-                { "list",           rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH_LIST,         false, &HandleFreedomMorphListCommand,      "", NULL },
                 { "",               rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH,              false, &HandleFreedomMorphCommand,          "", NULL },
                 { NULL, 0, false, NULL, "", NULL }
         };
 
         static ChatCommand freedomTeleportCommandTable[] = {
+                { "list",           rbac::RBAC_PERM_COMMAND_FREEDOM_TELE_LIST,          false, &HandleFreedomTeleListCommand,       "", NULL },
                 { "add",            rbac::RBAC_PERM_COMMAND_FREEDOM_TELE_MODIFY,        false, &HandleFreedomTeleAddCommand,        "", NULL },
                 { "delete",         rbac::RBAC_PERM_COMMAND_FREEDOM_TELE_MODIFY,        false, &HandleFreedomTeleDelCommand,        "", NULL },
                 { "",               rbac::RBAC_PERM_COMMAND_FREEDOM_TELE,               false, &HandleFreedomTeleCommand,           "", NULL },
@@ -53,6 +54,7 @@ public:
         };
 
         static ChatCommand freedomPrivateTeleportCommandTable[] = {
+                { "list",           rbac::RBAC_PERM_COMMAND_FREEDOM_PTELE,              false, &HandleFreedomPrivateTeleListCommand,"", NULL },
                 { "add",            rbac::RBAC_PERM_COMMAND_FREEDOM_PTELE,              false, &HandleFreedomPrivateTeleAddCommand, "", NULL },
                 { "delete",         rbac::RBAC_PERM_COMMAND_FREEDOM_PTELE,              false, &HandleFreedomPrivateTeleDelCommand, "", NULL },
                 { "",               rbac::RBAC_PERM_COMMAND_FREEDOM_PTELE,              false, &HandleFreedomPrivateTeleCommand,    "", NULL },
@@ -60,18 +62,18 @@ public:
         };
 
         static ChatCommand freedomItemCommandTable[] = {
+                { "list",           rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM_LIST,          false, &HandleFreedomItemListCommand,       "", NULL },
                 { "add",            rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM_MODIFY,        false, &HandleFreedomItemAddCommand,        "", NULL },
                 { "delete",         rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM_MODIFY,        false, &HandleFreedomItemDelCommand,        "", NULL },
-                { "list",           rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM_LIST,          false, &HandleFreedomItemListCommand,       "", NULL },
                 { "",               rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM,               false, &HandleFreedomItemCommand,           "", NULL },
                 { NULL, 0, false, NULL, "", NULL }
-        }
+        };
 
         static ChatCommand freedomCommandTable[] = {
                 { "morph",          rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH,              false, NULL,                                "", freedomMorphCommandTable },
                 { "teleport",       rbac::RBAC_PERM_COMMAND_FREEDOM_TELE,               false, NULL,                                "", freedomTeleportCommandTable },
                 { "pteleport",      rbac::RBAC_PERM_COMMAND_FREEDOM_PTELE,              false, NULL,                                "", freedomPrivateTeleportCommandTable },
-                { "item",           rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM,               false, NULL,                                "", freedomItemCommandTable }
+                { "item",           rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM,               false, NULL,                                "", freedomItemCommandTable },
                 { "summon",         rbac::RBAC_PERM_COMMAND_FREEDOM_SUMMON,             false, &HandleFreedomSummonCommand,         "", NULL },
                 { "demorph",        rbac::RBAC_PERM_COMMAND_FREEDOM_DEMORPH,            false, &HandleFreedomDemorphCommand,        "", NULL },
                 { "fly",            rbac::RBAC_PERM_COMMAND_FREEDOM_FLY,                false, &HandleFreedomFlyCommand,            "", NULL },
@@ -799,51 +801,44 @@ public:
             if (!isSpecialParam(temp))
                 break;
 
-            if ((temp == "--p" || temp == "--player") && handler->GetSession()->GetSecurity() >= SEC_GAMEMASTER && sp_player)
-            {
-                param_index++;
-                if (!params[param_index] || isSpecialParam(params[param_index])) // via in-game target
-                {
-                    char_guid = NULL;
-                    target = handler->getSelectedPlayer();
-                    if (!target)
-                        break;
-                    else
-                        char_guid = target->GetGUIDLow();
-                    sp_player = false;
-                    player_name = target->GetName();
-                    continue;
-                }
-                else // via DB
-                {
-                    char_guid = NULL;
-                    player_name = params[param_index];
-
-                    stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_GUID_BY_NAME);
-                    stmt->setString(0, params[param_index]);
-                    PreparedQueryResult result = CharacterDatabase.Query(stmt);
-                    if (result)
-                    {
-                        Field * fields = result->Fetch();
-                        char_guid = fields[0].GetUInt32();
-                        target = NULL;
-                    }
-                    else
-                    {
-                        break;
-                    }
-
-                    sp_player = false;
-                }
-            }
-            else if ((temp == "--f" || temp == "--filter") && sp_filter)
+            if ((temp == "--p") && handler->GetSession()->GetSecurity() >= SEC_GAMEMASTER && sp_player)
             {
                 param_index++;
                 if (!params[param_index] || isSpecialParam(params[param_index]))
                 {
                     handler->PSendSysMessage(
-                            "%s.freedom morph list [--filter]: %sMissing argument.\n"
-                            "%sReason: %sSpecial parameter %s--filter%s requires an argument followed after it.",
+                        "%s.freedom morph list [--p]: %sMissing argument.\n"
+                        "%sReason: %sSpecial parameter %s--p%s requires an argument followed after it.",
+                        MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+                    return true;
+                }
+
+                char_guid = NULL;
+                player_name = params[param_index];
+
+                stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_CHAR_GUID_BY_NAME);
+                stmt->setString(0, params[param_index]);
+                PreparedQueryResult result = CharacterDatabase.Query(stmt);
+                if (result)
+                {
+                    Field * fields = result->Fetch();
+                    char_guid = fields[0].GetUInt32();
+                }
+                else
+                {
+                    break;
+                }
+
+                sp_player = false;
+            }
+            else if ((temp == "--f") && sp_filter)
+            {
+                param_index++;
+                if (!params[param_index] || isSpecialParam(params[param_index]))
+                {
+                    handler->PSendSysMessage(
+                            "%s.freedom morph list [--f]: %sMissing argument.\n"
+                            "%sReason: %sSpecial parameter %s--f%s requires an argument followed after it.",
                             MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
                     return true;
                 }
@@ -876,7 +871,6 @@ public:
             return true;
         }
 
-        // check for duplicate morph name
         morph_name_part += "%";
         stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_MORPH);
         stmt->setString(0, morph_name_part);
@@ -990,7 +984,7 @@ public:
             handler->PSendSysMessage(
                     "%s.freedom teleport: %sPlease specify a name for the location to teleport to.\n"
                     "%sSyntax: %s.freedom teleport $teleNamePart\n"
-                    "%sHint: %sUse %s.list ftele $namePart %scommand to search for available destinations.", 
+                    "%sHint: %sUse %s.f tele list $namePart %scommand to search for available destinations.", 
                     MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             return true;
         }
@@ -1010,7 +1004,7 @@ public:
         }
 
         // refine query parameter for LIKE statement
-        replaceAll(tele_name_start, "%%", "\\%%"); //disable inputted % wildcards
+        replaceAll(tele_name_start, "%", "\\%"); //disable inputted % wildcards
         replaceAll(tele_name_start, "_", "\\_"); //disable inputted _ wildcards
         tele_name_start += "%"; // ensure that tele_name_start can end with anything
 
@@ -1031,7 +1025,7 @@ public:
             handler->PSendSysMessage(
                     "%s.freedom teleport: %sTeleport not found.\n"
                     "%sReason: %sNo teleport using that string was found.\n"
-                    "%sHint: %sUse %s.list ftele $namePart %scommand to search for available destinations.",
+                    "%sHint: %sUse %s.f tele list [$namePart] %scommand to search for available destinations.",
                     MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             return true;
         }
@@ -1045,7 +1039,9 @@ public:
         }
 
         source->SaveRecallPosition();
-        source->TeleportTo(fields[4].GetUInt32(), fields[0].GetFloat(), fields[1].GetFloat(), fields[2].GetFloat(), fields[3].GetFloat());
+        //             0            1           2           3        4     5      6
+        // "SELECT position_x, position_y, position_z, orientation, map, name, gm_uid FROM freedom_tele WHERE name LIKE/= ?",
+        source->TeleportTo(uint32(fields[4].GetUInt16()), fields[0].GetFloat(), fields[1].GetFloat(), fields[2].GetFloat(), fields[3].GetFloat());
 
         handler->PSendSysMessage(
             "%s>>%s You have been successfully teleported to %s%s %slocation.",
@@ -1065,21 +1061,8 @@ public:
             return true;
         }
 
-        std::string tele_name_new;
-        std::string temp;
-        temp = tele_name_new = strtok((char*)args, " ");
+        std::string tele_name_new = strtok((char*)args, " ");
         Player* source = handler->GetSession()->GetPlayer();
-
-        // disallow adding teleports with names identical to private teleport subcommands
-        std::transform(temp.begin(), temp.end(), temp.begin(), ::tolower);
-        if (temp == "add" || temp == "delete")
-        {
-            handler->PSendSysMessage(
-                "%s.freedom teleport add: %sIllegal name.\n"
-                "%sReason: %sYou cannot add teleports with names matching the teleport sub-commands.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
-            return true;
-        }
 
         PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_TELE_EXACT);
         stmt->setString(0, tele_name_new);
@@ -1106,7 +1089,7 @@ public:
         WorldDatabase.Execute(stmt);
 
         handler->PSendSysMessage(
-            "%s>>%s Teleport (Freedom-type) with the name %s%s successfully created.",
+            "%s>>%s Teleport (Freedom-type) with the name %s%s%s successfully created.",
             MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, tele_name_new.c_str(), MSG_COLOR_SUBWHITE);
 
         return true;
@@ -1119,7 +1102,7 @@ public:
             handler->PSendSysMessage(
                 "%s.freedom teleport delete: %sPlease specify a name of the freedom teleport you want to delete.\n"
                 "%sSyntax: %s.freedom teleport delete $teleName\n"
-                "%sHint: %sUse %s.list ftele $namePart %scommand to search for freedom teleports.",
+                "%sHint: %sUse %s.f tele list $namePart %scommand to search for freedom teleports.",
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             return true;
         }
@@ -1152,6 +1135,55 @@ public:
         return true;
     }
 
+    static bool HandleFreedomTeleListCommand(ChatHandler* handler, const char* args)
+    {
+        std::string tele_name_start = "";
+        
+        if (*args) 
+        {
+            tele_name_start += strtok((char*)args, " ");
+        }
+
+        // refine query parameter for LIKE statement
+        replaceAll(tele_name_start, "%", "\\%"); //disable inputted % wildcards
+        replaceAll(tele_name_start, "_", "\\_"); //disable inputted _ wildcards
+        tele_name_start += "%"; // ensure that tele_name_start can end with anything
+
+        // get exact match
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_TELE);
+        stmt->setString(0, tele_name_start);
+        PreparedQueryResult result = WorldDatabase.Query(stmt);
+
+        if (!result)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom teleport list: %sNo teleports found.\n"
+                "%sReason: %sNo teleports using that string (or blank) was found in freedom teleport list.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        handler->PSendSysMessage(
+            "%s>>%s Retrieving %s%u%s teleports...",
+            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, uint32(result->GetRowCount()), MSG_COLOR_SUBWHITE);
+
+        do
+        {
+            Field * fields = result->Fetch();
+            std::string map_name = "<unknown>";
+            
+            MapEntry const* map = sMapStore.LookupEntry(uint32(fields[4].GetUInt16()));
+            if (map)
+                map_name = map->name;
+
+            handler->PSendSysMessage(
+                "%s> %s%s%s (Map: %s%s%s)",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, fields[5].GetCString(), MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, map_name.c_str(), MSG_COLOR_SUBWHITE);
+        } while (result->NextRow());
+
+        return true;
+    }
+
     // LOCATIONAL -> PRIVATE TELEPORT
     static bool HandleFreedomPrivateTeleCommand(ChatHandler* handler, const char* args) 
     {
@@ -1160,13 +1192,13 @@ public:
             handler->PSendSysMessage(
                 "%s.freedom pteleport: %sPlease specify a name for the location to teleport to.\n"
                 "%sSyntax: %s.freedom pteleport $teleNamePart\n"
-                "%sHint: %sUse %s.list ptele $namePart %scommand to search for available destinations.",
+                "%sHint: %sUse %s.f ptele list [$namePart] %scommand to search for available destinations.",
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             return true;
         }
 
         std::string tele_name_exact;
-        tele_name_exact = strtok((char *)args, " ");;
+        tele_name_exact = strtok((char *)args, " ");
         std::string tele_name_start = tele_name_exact;
         Player* source = handler->GetSession()->GetPlayer();
 
@@ -1195,6 +1227,7 @@ public:
             stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_PRIVATE_TELE);
             stmt->setString(0, tele_name_start);
             stmt->setUInt32(1, source->GetSession()->GetAccountId());
+            result = WorldDatabase.Query(stmt);
         }
 
         if (!result)
@@ -1202,7 +1235,7 @@ public:
             handler->PSendSysMessage(
                 "%s.freedom pteleport: %sTeleport not found.\n"
                 "%sReason: %sNo teleport using that string was found in your private teleport list.\n"
-                "%sHint: %sUse %s.list ptele $namePart %scommand to search for available destinations.",
+                "%sHint: %sUse %s.f ptele list [$namePart] %scommand to search for available destinations.",
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
             return true;
         }
@@ -1216,7 +1249,7 @@ public:
         }
 
         source->SaveRecallPosition();
-        source->TeleportTo(fields[4].GetUInt32(), fields[0].GetFloat(), fields[1].GetFloat(), fields[2].GetFloat(), fields[3].GetFloat());
+        source->TeleportTo(uint32(fields[4].GetUInt16()), fields[0].GetFloat(), fields[1].GetFloat(), fields[2].GetFloat(), fields[3].GetFloat());
 
         handler->PSendSysMessage(
                 "%s>>%s You have been successfully teleported to %s%s %slocation.", 
@@ -1236,21 +1269,8 @@ public:
             return true;
         }
 
-        std::string tele_name_new;
-        std::string temp;
-        temp = tele_name_new = strtok((char*)args, " ");
+        std::string tele_name_new = strtok((char*)args, " ");
         Player* source = handler->GetSession()->GetPlayer();
-
-        // disallow adding teleports with names identical to private teleport subcommands
-        std::transform(temp.begin(), temp.end(), temp.begin(), ::tolower);
-        if (temp == "add" || temp == "delete")
-        {
-            handler->PSendSysMessage(
-                "%s.freedom pteleport add: %sIllegal name.\n"
-                "%sReason: %sYou cannot add teleports with names matching the teleport sub-commands.",
-                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
-            return true;
-        }
 
         PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_PRIVATE_TELE_EXACT);
         stmt->setString(0, tele_name_new);
@@ -1278,7 +1298,7 @@ public:
         WorldDatabase.Execute(stmt);
 
         handler->PSendSysMessage(
-                "%s>>%s Teleport (Private-type) with the name %s%s successfully created.", 
+                "%s>>%s Teleport (Private-type) with the name %s%s%s successfully created.", 
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, tele_name_new.c_str(), MSG_COLOR_SUBWHITE);
 
         return true;
@@ -1296,8 +1316,7 @@ public:
             return true;
         }
 
-        std::string tele_name_delete;
-        tele_name_delete = strtok((char*)args, " ");
+        std::string tele_name_delete = strtok((char*)args, " ");
         Player* source = handler->GetSession()->GetPlayer();
 
         PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_PRIVATE_TELE_EXACT);
@@ -1323,6 +1342,122 @@ public:
         handler->PSendSysMessage(
                 "%s>>%s Teleport (Private-type) with the name %s%s%s successfully deleted.", 
                  MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, tele_name_delete.c_str(), MSG_COLOR_SUBWHITE);
+
+        return true;
+    }
+
+    static bool HandleFreedomPrivateTeleListCommand(ChatHandler* handler, const char* args)
+    {
+        std::string tele_name_start = "";
+        uint32 account_id = handler->GetSession()->GetAccountId();
+        std::string target_name = handler->GetSession()->GetPlayer()->GetName();
+        PreparedStatement* stmt;
+
+        char * params[3];
+        params[0] = strtok((char*)args, " ");
+        params[1] = strtok(NULL, " ");
+        params[2] = strtok(NULL, " ");
+
+        int param_index = 0;
+
+        // check & set special parameters
+        std::string temp = params[param_index] ? params[param_index] : "";
+
+        if ((temp == "--p") && handler->GetSession()->GetSecurity() >= SEC_GAMEMASTER)
+        {
+            param_index++;
+            account_id = NULL;
+            
+            if (!params[param_index])
+            {
+                handler->PSendSysMessage(
+                    "%s.freedom ptele list [--p]: %sMissing argument.\n"
+                    "%sReason: %sSpecial parameter %s--p%s requires an argument followed after it.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+                return true;
+            }
+            if (isSpecialParam(params[param_index]))
+            {
+                handler->PSendSysMessage(
+                    "%s.freedom ptele list [--p]: %sInvalid Argument.\n"
+                    "%sReason: %sSpecial parameter (parameter which starts with %s--%s) cannot be used as an argument for another special parameter.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE);
+                return true;
+            }
+
+            target_name = params[param_index];
+
+            stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_BY_NAME);
+            stmt->setString(0, target_name);
+            PreparedQueryResult result = CharacterDatabase.Query(stmt);
+            if (result)
+            {
+                Field * fields = result->Fetch();
+                account_id = fields[0].GetUInt32();
+            }
+            else
+            {
+                handler->PSendSysMessage(
+                    "%s.freedom ptele list [--p]: %sNo player found.\n"
+                    "%sReason: %sPlayer %s%s%s does not exist.",
+                    MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, target_name.c_str(), MSG_COLOR_SUBWHITE);
+                return true;
+            }
+
+            param_index++;
+        }
+        else if (isSpecialParam(temp))
+        {
+            handler->PSendSysMessage(
+                "%s.freedom ptele list: %sInvalid special parameter.\n"
+                "%sReason: %sSpecial parameter (parameter which starts with %s--%s) you used was incorrect (no such special parameter is available).\n"
+                "%sHint: %sRemember that special parameters with their arguments have to be entered before command's normal parameters!",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        if (params[param_index])
+        {
+            tele_name_start += params[param_index];
+        }
+
+        // refine query parameter for LIKE statement
+        replaceAll(tele_name_start, "%", "\\%"); //disable inputted % wildcards
+        replaceAll(tele_name_start, "_", "\\_"); //disable inputted _ wildcards
+        tele_name_start += "%"; // ensure that tele_name_start can end with anything
+
+        // get exact match
+        stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_PRIVATE_TELE);
+        stmt->setString(0, tele_name_start);
+        stmt->setUInt32(1, account_id);
+        PreparedQueryResult result = WorldDatabase.Query(stmt);
+
+        if (!result)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom ptele list: %sNo teleport(s) found.\n"
+                "%sReason: %sNo teleports using that string (or blank) was found in private teleport list of %s%s%s.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, target_name.c_str(), MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        handler->PSendSysMessage(
+            "%s>>%s Retrieving %s%u%s private teleport(s) of %s%s%s...",
+            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, uint32(result->GetRowCount()), MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, target_name.c_str(), MSG_COLOR_SUBWHITE);
+
+        do
+        {
+            Field * fields = result->Fetch();
+            std::string map_name = "<unknown>";
+
+            MapEntry const* map = sMapStore.LookupEntry(uint32(fields[4].GetUInt16()));
+            if (map)
+                map_name = map->name;
+
+            handler->PSendSysMessage(
+                "%s> %s%s%s (Map: %s%s%s)",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, fields[5].GetCString(), MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, map_name.c_str(), MSG_COLOR_SUBWHITE);
+        } while (result->NextRow());
 
         return true;
     }
