@@ -41,30 +41,18 @@ public:
 
     ChatCommand* GetCommands() const
     {
-        static ChatCommand gobjectAddCommandTable[] =
-        {
-            { "temp", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD_TEMP, false, &HandleGameObjectAddTempCommand, "", NULL },
-            { "", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD, false, &HandleGameObjectAddCommand, "", NULL },
-            { NULL, 0, false, NULL, "", NULL }
-        };
-        static ChatCommand gobjectSetCommandTable[] =
-        {
-            { "phase", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_PHASE, false, &HandleGameObjectSetPhaseCommand, "", NULL },
-            { "state", rbac::RBAC_PERM_COMMAND_GOBJECT_SET_STATE, false, &HandleGameObjectSetStateCommand, "", NULL },
-            { "scale", SEC_GAMEMASTER, false, &HandleGameObjectScaleCommand, "", NULL },
-            { NULL, 0, false, NULL, "", NULL }
-        };
         static ChatCommand gobjectCommandTable[] =
         {
-            { "activate", rbac::RBAC_PERM_COMMAND_GOBJECT_ACTIVATE, false, &HandleGameObjectActivateCommand, "", NULL },
-            { "delete", rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE, false, &HandleGameObjectDeleteCommand, "", NULL },
-            { "info", rbac::RBAC_PERM_COMMAND_GOBJECT_INFO, false, &HandleGameObjectInfoCommand, "", NULL },
-            { "move", rbac::RBAC_PERM_COMMAND_GOBJECT_MOVE, false, &HandleGameObjectMoveCommand, "", NULL },
-            { "near", rbac::RBAC_PERM_COMMAND_GOBJECT_NEAR, false, &HandleGameObjectNearCommand, "", NULL },
-            { "target", rbac::RBAC_PERM_COMMAND_GOBJECT_TARGET, false, &HandleGameObjectTargetCommand, "", NULL },
-            { "turn", rbac::RBAC_PERM_COMMAND_GOBJECT_TURN, false, &HandleGameObjectTurnCommand, "", NULL },
-            { "add", rbac::RBAC_PERM_COMMAND_GOBJECT_ADD, false, NULL, "", gobjectAddCommandTable },
-            { "set", rbac::RBAC_PERM_COMMAND_GOBJECT_SET, false, NULL, "", gobjectSetCommandTable },
+            { "phase",      rbac::RBAC_PERM_COMMAND_GOBJECT_PHASE,          false, &HandleGameObjectSetPhaseCommand,                "", NULL },
+            { "scale",      rbac::RBAC_PERM_COMMAND_GOBJECT_SCALE,          false, &HandleGameObjectScaleCommand,                   "", NULL },
+            { "activate",   rbac::RBAC_PERM_COMMAND_GOBJECT_ACTIVATE,       false, &HandleGameObjectActivateCommand,                "", NULL },
+            { "delete",     rbac::RBAC_PERM_COMMAND_GOBJECT_DELETE,         false, &HandleGameObjectDeleteCommand,                  "", NULL },
+            { "info",       rbac::RBAC_PERM_COMMAND_GOBJECT_INFO,           false, &HandleGameObjectInfoCommand,                    "", NULL },
+            { "move",       rbac::RBAC_PERM_COMMAND_GOBJECT_MOVE,           false, &HandleGameObjectMoveCommand,                    "", NULL },
+            { "near",       rbac::RBAC_PERM_COMMAND_GOBJECT_NEAR,           false, &HandleGameObjectNearCommand,                    "", NULL },
+            { "target",     rbac::RBAC_PERM_COMMAND_GOBJECT_TARGET,         false, &HandleGameObjectTargetCommand,                  "", NULL },
+            { "turn",       rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,           false, &HandleGameObjectTurnCommand,                    "", NULL },
+            { "add",        rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,            false, &HandleGameObjectAddCommand,                     "", NULL },
             { NULL, 0, false, NULL, "", NULL }
         };
         static ChatCommand commandTable[] =
@@ -170,8 +158,6 @@ public:
         if (!objectId)
             return false;
 
-        char* spawntimeSecs = strtok(NULL, " ");
-
         const GameObjectTemplate* objectInfo = sObjectMgr->GetGameObjectTemplate(objectId);
 
         if (!objectInfo)
@@ -206,12 +192,6 @@ public:
             return false;
         }
 
-        if (spawntimeSecs)
-        {
-            uint32 value = atoi((char*)spawntimeSecs);
-            object->SetRespawnTime(value);
-        }
-
         // fill the gameobject data and save to the db
         object->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), player->GetPhaseMgr().GetPhaseMaskForSpawn());
 
@@ -226,39 +206,6 @@ public:
         sObjectMgr->AddGameobjectToGrid(guidLow, sObjectMgr->GetGOData(guidLow));
 
         handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, objectId, objectInfo->name.c_str(), guidLow, x, y, z);
-        return true;
-    }
-
-    // add go, temp only
-    static bool HandleGameObjectAddTempCommand(ChatHandler* handler, char const* args)
-    {
-        if (!*args)
-            return false;
-
-        char* id = strtok((char*)args, " ");
-        if (!id)
-            return false;
-
-        Player* player = handler->GetSession()->GetPlayer();
-
-        char* spawntime = strtok(NULL, " ");
-        uint32 spawntm = 300;
-
-        if (spawntime)
-            spawntm = atoi((char*)spawntime);
-
-        float x = player->GetPositionX();
-        float y = player->GetPositionY();
-        float z = player->GetPositionZ();
-        float ang = player->GetOrientation();
-
-        float rot2 = std::sin(ang / 2);
-        float rot3 = std::cos(ang / 2);
-
-        uint32 objectId = atoi(id);
-
-        player->SummonGameObject(objectId, x, y, z, ang, 0, 0, rot2, rot3, spawntm);
-
         return true;
     }
 
