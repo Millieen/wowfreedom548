@@ -360,7 +360,7 @@ public:
         {
             handler->PSendSysMessage(
                     "%s.freedom drunk: %sPlease specify a number between 0 and 100.\n"
-                    "%sSyntax: %s.freedom speed $newSpeed",
+                    "%sSyntax: %s.freedom speed $newPercentage",
                     MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
@@ -375,7 +375,7 @@ public:
         {
             handler->PSendSysMessage(
                     "%s.freedom drunk: %sPlease specify a number between 0 and 100.\n"
-                    "%sSyntax: %s.freedom speed $newSpeed",
+                    "%sSyntax: %s.freedom speed $newPercentage",
                     MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }
