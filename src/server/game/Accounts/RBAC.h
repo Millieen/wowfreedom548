@@ -718,6 +718,8 @@ enum RBACPermissions
     // CUSTOM GM CMDS           2000 <= X < 3000
 
     // CUSTOM GOBJECT CMDS      3000 <= X < 4000
+    RBAC_PERM_COMMAND_GOBJECT_SCALE                          = 3000,
+    RBAC_PERM_COMMAND_GOBJECT_PHASE                          = 3001,
 
     // CUSTOM GOTO CMDS         4000 <= X < 5000
 
