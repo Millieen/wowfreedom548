@@ -1241,6 +1241,10 @@ class Player : public Unit, public GridObject<Player>
             SetFloatValue(UNIT_FIELD_COMBAT_REACH, scale * DEFAULT_COMBAT_REACH);
         }
 
+        // WoW Freedom player public methods
+        uint32 GetSelectedGameObject() { return m_selected_go; }
+        void SetSelectedGameObject(uint32 guid) { m_selected_go = guid; }
+
         bool TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options = 0);
         bool TeleportTo(WorldLocation const &loc, uint32 options = 0);
         bool TeleportToBGEntryPoint();
@@ -2835,6 +2839,9 @@ class Player : public Unit, public GridObject<Player>
         CUFProfile* _CUFProfiles[MAX_CUF_PROFILES];
 
     private:
+        // WoW Freedom custom player variables
+        uint32 m_selected_go;
+
         // internal common parts for CanStore/StoreItem functions
         InventoryResult CanStoreItem_InSpecificSlot(uint8 bag, uint8 slot, ItemPosCountVec& dest, ItemTemplate const* pProto, uint32& count, bool swap, Item* pSrcItem) const;
         InventoryResult CanStoreItem_InBag(uint8 bag, ItemPosCountVec& dest, ItemTemplate const* pProto, uint32& count, bool merge, bool non_specialized, Item* pSrcItem, uint8 skip_bag, uint8 skip_slot) const;
