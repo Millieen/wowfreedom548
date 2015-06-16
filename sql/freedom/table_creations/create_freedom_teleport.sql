@@ -1,4 +1,5 @@
 USE world;
+DROP TABLE IF EXISTS `freedom_tele`;
 CREATE TABLE `freedom_tele` (
 	`id` MEDIUMINT(8) UNSIGNED NOT NULL AUTO_INCREMENT,
 	`position_x` FLOAT NOT NULL DEFAULT '0',

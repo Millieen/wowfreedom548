@@ -1,4 +1,5 @@
 USE world;
+DROP TABLE IF EXISTS `freedom_morph`;
 CREATE TABLE `freedom_morph` (
 	`guid` MEDIUMINT(8) UNSIGNED NOT NULL COMMENT 'CHARACTER identifier',
 	`name` VARCHAR(100) NOT NULL COMMENT 'Custom given name for morph',
