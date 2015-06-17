@@ -16,10 +16,190 @@ public:
     {
         static ChatCommand commandTable[] =
         {
-            { "pinfo", rbac::RBAC_PERM_COMMAND_PINFO, true, &HandlePInfoCommand, "", NULL },
+            { "pinfo",              rbac::RBAC_PERM_COMMAND_PINFO,                      true,  &HandlePInfoCommand,                 "", NULL },
+            { "additem",            rbac::RBAC_PERM_COMMAND_ADDITEM,                    false, &HandleAddItemCommand,               "", NULL },
+            { "hideitem",           rbac::RBAC_PERM_COMMAND_HIDEITEM,                   false, &HandleHideItemCommand,              "", NULL },
+            { "unhideitem",         rbac::RBAC_PERM_COMMAND_UNHIDEITEM,                 false, &HandleUnHideItemCommand,            "", NULL },
             { NULL, 0, false, NULL, "", NULL }
         };
+
         return commandTable;
+    }
+
+    static bool HandleAddItemCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args) {
+            handler->PSendSysMessage("Please specify Entry ID of the item to add to your inventory.");
+            handler->PSendSysMessage("Hint: Use '.lookup item $itemNamePart' command to search for available items.");
+            return true;
+        }
+
+        char const* id = handler->extractKeyFromLink((char*)args, "Hitem");
+        uint32 itemId = uint32(atol(id));
+
+        if (!itemId)
+        {
+            handler->PSendSysMessage("Invalid Entry ID.");
+            return true;
+        }
+
+        char const* ccount = strtok(NULL, " ");
+
+        int32 count = 1;
+
+        if (ccount)
+        {
+            count = strtol(ccount, NULL, 10);
+            if (count == 0) 
+            {
+                count = 1;
+            }
+        }
+
+        Player* source = handler->GetSession()->GetPlayer();
+        Player* target = handler->getSelectedPlayer();
+        if (!target) 
+        {
+            target = source;
+        }
+
+        ItemTemplate const* itemTemplate = sObjectMgr->GetItemTemplate(itemId);
+        if (!itemTemplate)
+        {
+            handler->PSendSysMessage("Item with such Entry ID does not exist.");
+            return true;
+        }
+
+        // check if basic user, if so, then check if item is public
+        if (!handler->HasPermission(rbac::RBAC_PERM_COMMAND_ADDHIDDENITEM)) 
+        {
+            target = source;
+
+            PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_IS_PUBLIC_ITEM);
+            stmt->setUInt32(0, itemId);
+            
+            PreparedQueryResult result = WorldDatabase.Query(stmt);
+            
+            if (!result)
+            {
+                handler->PSendSysMessage("This item is hidden. Contact the Staff if you wish to make it public.");
+                return true;
+            }
+        }
+
+        TC_LOG_DEBUG("misc", handler->GetTrinityString(LANG_ADDITEM), itemId, count);
+
+        // Subtract
+        if (count < 0)
+        {
+            target->DestroyItemCount(itemId, -count, true, false);
+            handler->PSendSysMessage(LANG_REMOVEITEM, itemId, -count, handler->GetNameLink(target).c_str());
+            return true;
+        }
+
+        // Adding items
+        uint32 noSpaceForCount = 0;
+
+        // check space and find places
+        ItemPosCountVec dest;
+        InventoryResult msg = target->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemId, count, &noSpaceForCount);
+        if (msg != EQUIP_ERR_OK)                               // convert to possible store amount
+            count -= noSpaceForCount;
+
+        if (count == 0 || dest.empty())                         // can't add any
+        {
+            handler->PSendSysMessage(LANG_ITEM_CANNOT_CREATE, itemId, noSpaceForCount);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        Item* item = target->StoreNewItem(dest, itemId, true, Item::GenerateItemRandomPropertyId(itemId));
+
+        // remove binding (let GM give it to another player later)
+        if (source == target)
+            for (ItemPosCountVec::const_iterator itr = dest.begin(); itr != dest.end(); ++itr)
+                if (Item* item1 = source->GetItemByPos(itr->pos))
+                    item1->SetBinding(false);
+
+        if (count > 0 && item)
+        {
+            source->SendNewItem(item, count, false, true);
+            if (source != target)
+                target->SendNewItem(item, count, true, false);
+        }
+
+        if (noSpaceForCount > 0)
+            handler->PSendSysMessage(LANG_ITEM_CANNOT_CREATE, itemId, noSpaceForCount);
+
+        return true;
+    }
+
+    static bool HandleHideItemCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args) {
+            handler->PSendSysMessage("Please specify Entry ID of the item to hide from public list.");
+            handler->PSendSysMessage("Hint: Use '.lookup item $itemNamePart' command to search for available items.");
+            return true;
+        }
+
+        char const* id = handler->extractKeyFromLink((char*)args, "Hitem");
+        uint32 itemId = uint32(atol(id));
+
+        if (!itemId)
+        {
+            handler->PSendSysMessage("Invalid Entry ID.");
+            return true;
+        }
+
+        ItemTemplate const* itemTemplate = sObjectMgr->GetItemTemplate(itemId);
+        if (!itemTemplate)
+        {
+            handler->PSendSysMessage("Item with such Entry ID does not exist.");
+            return true;
+        }
+
+        PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_ITEM_VISIBILITY);
+        stmt->setUInt8(0, 0);
+        stmt->setUInt32(1, itemId);
+        WorldDatabase.Execute(stmt);
+
+        handler->PSendSysMessage(">> Item has been successfully hidden/restricted from public.");
+
+        return true;
+    }
+
+    static bool HandleUnHideItemCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args) {
+            handler->PSendSysMessage("Please specify Entry ID of the item to unhide.");
+            handler->PSendSysMessage("Hint: Use '.lookup item $itemNamePart' command to search for available items.");
+            return true;
+        }
+
+        char const* id = handler->extractKeyFromLink((char*)args, "Hitem");
+        uint32 itemId = uint32(atol(id));
+
+        if (!itemId)
+        {
+            handler->PSendSysMessage("Invalid Entry ID.");
+            return true;
+        }
+
+        ItemTemplate const* itemTemplate = sObjectMgr->GetItemTemplate(itemId);
+        if (!itemTemplate)
+        {
+            handler->PSendSysMessage("Item with such Entry ID does not exist.");
+            return true;
+        }
+
+        PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_ITEM_VISIBILITY);
+        stmt->setUInt8(0, 1);
+        stmt->setUInt32(1, itemId);
+        WorldDatabase.Execute(stmt);
+
+        handler->PSendSysMessage(">> Item has been successfully made public.");
+
+        return true;
     }
 
     /**

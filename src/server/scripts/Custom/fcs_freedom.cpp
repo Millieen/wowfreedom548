@@ -61,19 +61,10 @@ public:
                 { NULL, 0, false, NULL, "", NULL }
         };
 
-        static ChatCommand freedomItemCommandTable[] = {
-                { "list",           rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM_LIST,          false, &HandleFreedomItemListCommand,       "", NULL },
-                { "add",            rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM_MODIFY,        false, &HandleFreedomItemAddCommand,        "", NULL },
-                { "delete",         rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM_MODIFY,        false, &HandleFreedomItemDelCommand,        "", NULL },
-                { "",               rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM,               false, &HandleFreedomItemCommand,           "", NULL },
-                { NULL, 0, false, NULL, "", NULL }
-        };
-
         static ChatCommand freedomCommandTable[] = {
                 { "morph",          rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH,              false, NULL,                                "", freedomMorphCommandTable },
                 { "teleport",       rbac::RBAC_PERM_COMMAND_FREEDOM_TELE,               false, NULL,                                "", freedomTeleportCommandTable },
                 { "pteleport",      rbac::RBAC_PERM_COMMAND_FREEDOM_PTELE,              false, NULL,                                "", freedomPrivateTeleportCommandTable },
-                { "item",           rbac::RBAC_PERM_COMMAND_FREEDOM_ITEM,               false, NULL,                                "", freedomItemCommandTable },
                 { "summon",         rbac::RBAC_PERM_COMMAND_FREEDOM_SUMMON,             false, &HandleFreedomSummonCommand,         "", NULL },
                 { "demorph",        rbac::RBAC_PERM_COMMAND_FREEDOM_DEMORPH,            false, &HandleFreedomDemorphCommand,        "", NULL },
                 { "fly",            rbac::RBAC_PERM_COMMAND_FREEDOM_FLY,                false, &HandleFreedomFlyCommand,            "", NULL },
@@ -110,27 +101,6 @@ public:
     * |cFFBBBBBB MSG_COLOR_SUBWHITE  - description, normal text.
     * |cFFFF4500 MSG_COLOR_ORANGEY   - tag name, link name, target/source name, for exclamation.
     */
-
-    // ITEM
-    static bool HandleFreedomItemCommand(ChatHandler* handler, const char* args)
-    {
-        return true;
-    }
-
-    static bool HandleFreedomItemAddCommand(ChatHandler* handler, const char* args)
-    {
-        return true;
-    }
-
-    static bool HandleFreedomItemDelCommand(ChatHandler* handler, const char* args)
-    {
-        return true;
-    }
-
-    static bool HandleFreedomItemListCommand(ChatHandler* handler, const char* args)
-    {
-        return true;
-    }
 
     // UTILITIES
     static bool HandleFreedomMoneyCommand(ChatHandler* handler, const char* /*args*/) {

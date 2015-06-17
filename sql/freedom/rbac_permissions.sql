@@ -11,7 +11,6 @@
 *			e.g. PERM GROUP 198 (mod) has all permissions of PERM GROUP 199 (player)
 * 190 - Role: [GM3] Administrator
 * 191 - Role: [GM2] Gamemaster
-* 197 - Role: [GM1] Moderator, STG
 * 198 - Role: [GM1] Moderator, ST
 * 199 - Role: [GM0] Player
 */
@@ -45,7 +44,11 @@ INSERT INTO auth.rbac_permissions (`id`, `name`) VALUES
 (1024, 'Command: freedom tele list'), 		(1025, 'Command: freedom item'), 		(1026, 'Command: freedom item add/del'),
 (1027, 'Command: freedom item list'),
 -- [.gobject]
-(3000, 'Command: gobject set scale'), (3001, 'Command: gobject phase'), (3002, 'Command: gobject select')
+(3000, 'Command: gobject set scale'), (3001, 'Command: gobject phase'), (3002, 'Command: gobject select'),
+-- [misc]
+(8000, 'Allow adding hidden items through additem command'),
+(8001, 'Command: hideitem'),
+(8002, 'Command: unhideitem')
 ;
 
 -- [RECREATION: LINKED PERMS]
@@ -86,6 +89,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@PLAYER, 50), -- Allow user to check his own email with .account
 
 -- [DEFAULT COMMANDS]
+(@PLAYER, 488), -- additem
 (@PLAYER, 496), -- commands
 (@PLAYER, 501), -- dismount
 (@PLAYER, 502), -- distance
@@ -139,11 +143,12 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 -- [191 - Role: [GM2] Gamemaster]
 (@GM, @MODERATOR),
 -- [SPECIAL]
-(@GM, 32), -- Can be assigned tickets with .assign ticket command
-(@GM, 44), -- Receive global GM messages/texts
-(@GM, 46), -- Change channel settings without being channel moderator
-(@GM, 47), -- Enables lower security than target check
-(@GM, 48), -- Enable IP, Last Login and EMail output in pinfo
+(@GM, 32),   -- Can be assigned tickets with .assign ticket command
+(@GM, 44),   -- Receive global GM messages/texts
+(@GM, 46),   -- Change channel settings without being channel moderator
+(@GM, 47),   -- Enables lower security than target check
+(@GM, 48),   -- Enable IP, Last Login and EMail output in pinfo
+(@GM, 8000), -- Allow adding hidden items through additem command
 -- [DEFAULT COMMANDS]
 (@GM, 239), (@GM, 240), (@GM, 241), (@GM, 242), (@GM, 243), -- ban
 (@GM, 244), (@GM, 245), (@GM, 246), (@GM, 247), -- baninfo
@@ -161,7 +166,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@GM, 463), (@GM, 464), (@GM, 465), -- channel
 (@GM, 473), (@GM, 474), (@GM, 475), (@GM, 476), (@GM, 477), -- group
 (@GM, 479), (@GM, 480), (@GM, 481), (@GM, 482), -- pet
-(@GM, 488), (@GM, 489), -- additem, additemset
+(@GM, 489), -- additemset
 (@GM, 500), -- die
 (@GM, 510), -- kick
 (@GM, 511), -- linkgrave
@@ -182,7 +187,8 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@GM, 761), (@GM, 762), (@GM, 763), (@GM, 764), (@GM, 765), (@GM, 766), -- titles
 
 -- [CUSTOM COMMANDS]
-(@GM, 1020), (@GM, 1021), (@GM, 1026), -- freedom tele add/del, freedom morph add/del, freedom item add/del
+(@GM, 1020), (@GM, 1021), -- freedom tele add/del, freedom morph add/del
+(@GM, 8001), (@GM, 8002), -- hide/unhide items for the public (GMLVL 0 and 1 / Players & Moderators)
 
 -- [190 - Role: [GM3] Administrator]
 (@ADMIN, @GM),

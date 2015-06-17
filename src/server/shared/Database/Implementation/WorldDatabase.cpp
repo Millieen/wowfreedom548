@@ -112,4 +112,8 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_SEL_GAMEOBJECT_NEAREST_SINGLE, "SELECT guid, id, position_x, position_y, position_z, map, SQRT(POW(position_x - ?, 2) + POW(position_y - ?, 2) + POW(position_z - ?, 2)) AS distance FROM gameobject WHERE map = ? ORDER BY distance LIMIT 1", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_GAMEOBJECT_NEAREST_SINGLE_EID, "SELECT guid, id, position_x, position_y, position_z, map, SQRT(POW(position_x - ?, 2) + POW(position_y - ?, 2) + POW(position_z - ?, 2)) AS distance FROM gameobject WHERE map = ? AND id = ? ORDER BY distance LIMIT 1", CONNECTION_SYNCH);
 
+    // CUSTOM ITEM CMDS
+    PrepareStatement(WORLD_SEL_IS_PUBLIC_ITEM, "SELECT 1 FROM item_template WHERE entry = ? AND public = 1", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_UPD_ITEM_VISIBILITY, "UPDATE item_template SET public = ? WHERE entry = ?", CONNECTION_ASYNC);
+
 }

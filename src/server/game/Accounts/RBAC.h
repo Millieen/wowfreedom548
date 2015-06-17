@@ -711,9 +711,6 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_FREEDOM_MORPH_LIST                     = 1022,
     RBAC_PERM_COMMAND_FREEDOM_PTELE_LIST                     = 1023,
     RBAC_PERM_COMMAND_FREEDOM_TELE_LIST                      = 1024,
-    RBAC_PERM_COMMAND_FREEDOM_ITEM                           = 1025,
-    RBAC_PERM_COMMAND_FREEDOM_ITEM_MODIFY                    = 1026,
-    RBAC_PERM_COMMAND_FREEDOM_ITEM_LIST                      = 1027,
 
     // CUSTOM GM CMDS           2000 <= X < 3000
 
@@ -731,6 +728,9 @@ enum RBACPermissions
     // CUSTOM LOOKUP CMDS       7000 <= X < 8000
 
     // CUSTOM MISC CMDS         8000 <= X < 9000
+    RBAC_PERM_COMMAND_ADDHIDDENITEM                          = 8000,
+    RBAC_PERM_COMMAND_HIDEITEM                               = 8001,
+    RBAC_PERM_COMMAND_UNHIDEITEM                             = 8002,
 
     RBAC_PERM_MAX
 };
