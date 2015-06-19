@@ -17,13 +17,6 @@
 * with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* ScriptData
-Name: gobject_commandscript
-%Complete: 100
-Comment: All gobject related commands
-Category: commandscripts
-EndScriptData */
-
 #include "ScriptMgr.h"
 #include "GameEventMgr.h"
 #include "ObjectMgr.h"
@@ -33,6 +26,8 @@ EndScriptData */
 #include "Language.h"
 #include "Player.h"
 #include "Opcodes.h"
+
+#define MATH_PI 3.14159265f
 
 class fgobject_commandscript : public CommandScript
 {
@@ -56,11 +51,13 @@ public:
             { "spawn",      rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,            false, &HandleGameObjectAddCommand,                     "", NULL },
             { NULL, 0, false, NULL, "", NULL }
         };
+
         static ChatCommand commandTable[] =
         {
             { "gobject", rbac::RBAC_PERM_COMMAND_GOBJECT, false, NULL, "", gobjectCommandTable },
             { NULL, 0, false, NULL, "", NULL }
         };
+
         return commandTable;
     }
 
@@ -180,18 +177,12 @@ public:
         // set scale
         float old_scale = object->GetObjectScale();
         object->SetObjectScale(scale);
-        object->DestroyForNearbyPlayers();
-        //object->UpdateObjectVisibility();
-        
-        //object->RemoveFromWorld();
-        //object->AddToWorld();
-        uint32 old_phase = object->GetPhaseMask();
-        object->SetPhaseMask(16, true);
 
+        //TODO: (Azeroc) Fix object resetting to old state after moving prematurely after the command
         object->SaveToDB();
-        object->Refresh();
+        object->RemoveFromWorld();
+        object->AddToWorld();
 
-        object->SetPhaseMask(old_phase, true);
         handler->PSendSysMessage(">> Object successfully scaled from %.2f to %.2f!", old_scale, scale);
 
         return true;
@@ -364,16 +355,9 @@ public:
     static bool HandleGameObjectTurnCommand(ChatHandler* handler, char const* args)
     {
         uint32 guid_low = handler->GetSession()->GetPlayer()->GetSelectedGameObject();
-        char * params[2];
-        params[0] = strtok((char*)args, " ");
-        params[1] = strtok(NULL, " ");
         float new_o;
+        float old_o;
         Player* source = handler->GetSession()->GetPlayer();
-
-        if (!*args)        
-            new_o = source->GetOrientation();
-        else
-            new_o = ((float)atof((char*)args) * (3.14159265f / 180.0f));
 
         if (!guid_low)
         {
@@ -394,15 +378,22 @@ public:
             return false;
         }
 
+        old_o = object->GetOrientation();
+
+        if (!*args)        
+            new_o = source->GetOrientation();
+        else
+            new_o = old_o + ((float)atof((char*)args) * (MATH_PI / 180.0f));
+
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), new_o);
         object->UpdateRotationFields();
-        object->DestroyForNearbyPlayers();
-        object->UpdateObjectVisibility();
 
+        //TODO: (Azeroc) Fix object resetting to old state after moving prematurely after the command
         object->SaveToDB();
-        object->Refresh();
+        object->RemoveFromWorld();
+        object->AddToWorld();
 
-        handler->PSendSysMessage(LANG_COMMAND_TURNOBJMESSAGE, object->GetGUIDLow(), object->GetGOInfo()->name.c_str(), object->GetGUIDLow(), new_o);
+        handler->PSendSysMessage("Game Object |cffffffff|Hgameobject:%d|h[%s]|h|r (GUID: %d) turned.", object->GetGUIDLow(), object->GetGOInfo()->name.c_str(), object->GetGUIDLow());
 
         return true;
     }
@@ -438,9 +429,7 @@ public:
 
         if (!toX)
         {
-            object->Relocate(source->GetPositionX(), source->GetPositionY(), source->GetPositionZ(), object->GetOrientation());
-            object->DestroyForNearbyPlayers();
-            object->UpdateObjectVisibility();
+            object->Relocate(source->GetPositionX(), source->GetPositionY(), source->GetPositionZ(), source->GetOrientation());
         }
         else
         {
@@ -461,13 +450,13 @@ public:
                 return false;
             }
 
-            object->Relocate(x, y, z, object->GetOrientation());
-            object->DestroyForNearbyPlayers();
-            object->UpdateObjectVisibility();
+            object->Relocate(x, y, z, source->GetOrientation());
         }
 
+        //TODO: (Azeroc) Fix object resetting to old state after moving prematurely after the command
         object->SaveToDB();
-        object->Refresh();
+        object->RemoveFromWorld();
+        object->AddToWorld();
 
         handler->PSendSysMessage(LANG_COMMAND_MOVEOBJMESSAGE, object->GetGUIDLow(), object->GetGOInfo()->name.c_str(), object->GetGUIDLow());
 
