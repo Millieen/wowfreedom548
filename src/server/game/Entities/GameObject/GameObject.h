@@ -635,6 +635,15 @@ class GameObject : public WorldObject, public GridObject<GameObject>, public Map
         explicit GameObject();
         ~GameObject();
 
+        // Freedom custom game object commands BEGIN
+    
+        void UpdateCreator(uint32 account_id);
+        void UpdateEditor(uint32 account_id);
+        void UpdateCreatedDatetime(time_t t);
+        void UpdateModifiedDatetime(time_t t);
+
+        // Freedom custom game object commands END
+
         void BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, Player* target) const;
 
         void AddToWorld();

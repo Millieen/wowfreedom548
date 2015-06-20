@@ -18,14 +18,11 @@
 */
 
 #include "ScriptMgr.h"
-#include "GameEventMgr.h"
 #include "ObjectMgr.h"
-#include "PoolMgr.h"
 #include "MapManager.h"
 #include "Chat.h"
 #include "Language.h"
 #include "Player.h"
-#include "Opcodes.h"
 
 #define MATH_PI 3.14159265f
 
@@ -101,7 +98,7 @@ public:
         float pos_x = fields[2].GetFloat();
         float pos_y = fields[3].GetFloat();
         float pos_z = fields[4].GetFloat();
-        uint32 map_id = uint32(fields[5].GetUInt16());
+        // cant use distance value from query, as for some reason the float value from it is drastically incorrect (extremely huge value), therefore, recalculate the distance in server-code
         float distance = sqrt(pow(pos_x - source->GetPositionX(), 2) + pow(pos_y - source->GetPositionY(), 2) + pow(pos_z - source->GetPositionZ(), 2));
 
         GameObjectTemplate const* gameobject_info = sObjectMgr->GetGameObjectTemplate(template_id);
@@ -112,12 +109,47 @@ public:
             return true;
         }
 
+        // get game object's history
+        PreparedStatement * history_stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_HISTORY);
+        history_stmt->setUInt32(0, guid);
+        PreparedQueryResult history_result = WorldDatabase.Query(history_stmt);
+        Field * history_field = history_result->Fetch();
+
+        uint32 creator_id = history_field[0].GetUInt32();
+        uint32 editor_id = history_field[1].GetUInt32();
+        std::string created = history_field[2].GetString();
+        std::string modified = history_field[3].GetString();
+
+        // get account usernames if source has enough permission
+        std::string creator_username = MSG_COLOR_RED "<HIDDEN>" "|r"; 
+        std::string editor_username = MSG_COLOR_RED "<HIDDEN>" "|r";
+
+        if (handler->HasPermission(rbac::RBAC_PERM_SPECIAL_SHOW_PRIVATE_INFO))
+        {
+            // get creator username
+            if (!sAccountMgr->GetName(handler->GetSession()->GetAccountId(), creator_username))
+            {
+                creator_username = "<NONE>";
+            }
+
+            // get editor username
+            if (!sAccountMgr->GetName(handler->GetSession()->GetAccountId(), editor_username))
+            {
+                editor_username = "<NONE>";
+            }
+        }
+
+        // display information to the source
         // [name] Shift-click form: |color|Hgameobject_entry:go_id|h[name]|h|r
         handler->PSendSysMessage("SELECTED GAME OBJECT: |cFFFFFFFF|Hgameobject_entry:%u|h[%s]|h|r", template_id, gameobject_info->name.c_str());
         handler->PSendSysMessage("> GUID: %u", guid);
         handler->PSendSysMessage("> Entry: %u", template_id);
+        handler->PSendSysMessage("> OWNER: %s (ID: %u)", creator_username.c_str(), creator_id);
+        handler->PSendSysMessage("> LAST MODIFIED BY: %s (ID: %u)", editor_username.c_str(), editor_id);
+        handler->PSendSysMessage("> CREATED: %s", created.c_str());
+        handler->PSendSysMessage("> LAST MODIFIED: %s", modified.c_str());
         handler->PSendSysMessage("> Position: X: %f Y: %f Z: %f", pos_x, pos_y, pos_z);
-        handler->PSendSysMessage("> Distance: %f yards", distance);
+        handler->PSendSysMessage("> Distance: %.2f yards", distance);
 
         source->SetSelectedGameObject(guid);
 
@@ -248,6 +280,17 @@ public:
             return true;
         }
 
+        // check if the game object entry ID is disabled
+        PreparedStatement * disable_check_stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_IS_DISABLED);
+        disable_check_stmt->setUInt32(0, entry_id);
+        PreparedQueryResult disable_check_result = WorldDatabase.Query(disable_check_stmt);
+
+        if (disable_check_result)
+        {
+            handler->PSendSysMessage("Game object (Entry ID: %u) is disabled. Contact the staff about its re-enabling.", entry_id);
+            return true;
+        }
+
         const GameObjectTemplate* object_info = sObjectMgr->GetGameObjectTemplate(entry_id);
 
         if (!object_info)
@@ -296,7 +339,25 @@ public:
         sObjectMgr->AddGameobjectToGrid(guid_low, sObjectMgr->GetGOData(guid_low));
 
         handler->PSendSysMessage(LANG_GAMEOBJECT_ADD, entry_id, object_info->name.c_str(), guid_low, x, y, z);
+
+        // add created game object to player's selection
         source->SetSelectedGameObject(guid_low);
+
+        // update game object's history
+        uint32 account_id = handler->GetSession()->GetAccountId();
+
+        // Update creator
+        object->UpdateCreator(account_id);
+
+        // Update editor
+        object->UpdateEditor(account_id);
+
+        // Update create datetime
+        object->UpdateCreatedDatetime(time(NULL));
+
+        // Update modified datetime
+        object->UpdateModifiedDatetime(time(NULL));
+
         return true;
     }
 
@@ -572,9 +633,9 @@ public:
     //show info of gameobject
     static bool HandleGameObjectInfoCommand(ChatHandler* handler, char const* args)
     {
-        uint32 entry = 0;
-        uint32 type = 0;
-        uint32 displayId = 0;
+        uint32 entry;
+        uint32 type;
+        uint32 displayId;
         std::string name;
         uint32 lootId = 0;
 

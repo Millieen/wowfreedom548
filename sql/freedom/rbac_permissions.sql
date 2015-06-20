@@ -48,7 +48,8 @@ INSERT INTO auth.rbac_permissions (`id`, `name`) VALUES
 -- [misc]
 (8000, 'Allow adding hidden items through additem command'),
 (8001, 'Command: hideitem'),
-(8002, 'Command: unhideitem')
+(8002, 'Command: unhideitem'),
+(8003, 'Allow showing private information when using certain commands')
 ;
 
 -- [RECREATION: LINKED PERMS]
@@ -149,6 +150,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@GM, 47),   -- Enables lower security than target check
 (@GM, 48),   -- Enable IP, Last Login and EMail output in pinfo
 (@GM, 8000), -- Allow adding hidden items through additem command
+(@GM, 8003), -- Allow showing private information when using certain commands
 -- [DEFAULT COMMANDS]
 (@GM, 239), (@GM, 240), (@GM, 241), (@GM, 242), (@GM, 243), -- ban
 (@GM, 244), (@GM, 245), (@GM, 246), (@GM, 247), -- baninfo

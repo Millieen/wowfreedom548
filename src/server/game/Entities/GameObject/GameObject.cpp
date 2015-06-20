@@ -75,6 +75,43 @@ GameObject::~GameObject()
     //    CleanupsBeforeDelete();
 }
 
+
+/* WOW FREEDOM CUSTOM METODS [BEGIN] */
+
+void GameObject::UpdateCreator(uint32 account_id)
+{
+    PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_CREATOR);
+    stmt->setUInt32(0, account_id);
+    stmt->setUInt32(1, GetGUIDLow());
+    WorldDatabase.Execute(stmt);
+}
+
+void GameObject::UpdateEditor(uint32 account_id)
+{
+    PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_EDITOR);
+    stmt->setUInt32(0, account_id);
+    stmt->setUInt32(1, GetGUIDLow());
+    WorldDatabase.Execute(stmt);
+}
+
+void GameObject::UpdateCreatedDatetime(time_t t)
+{
+    PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_CREATED);
+    stmt->setUInt64(0, t);
+    stmt->setUInt32(1, GetGUIDLow());
+    WorldDatabase.Execute(stmt);
+}
+
+void GameObject::UpdateModifiedDatetime(time_t t)
+{
+    PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_MODIFIED);
+    stmt->setUInt64(0, t);
+    stmt->setUInt32(1, GetGUIDLow());
+    WorldDatabase.Execute(stmt);
+}
+
+/* WOW FREEDOM CUSTOM METODS [END] */
+
 bool GameObject::AIM_Initialize()
 {
     if (m_AI)

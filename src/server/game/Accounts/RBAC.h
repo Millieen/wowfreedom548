@@ -727,10 +727,11 @@ enum RBACPermissions
 
     // CUSTOM LOOKUP CMDS       7000 <= X < 8000
 
-    // CUSTOM MISC CMDS         8000 <= X < 9000
+    // CUSTOM MISC STUFF        8000 <= X < 9000
     RBAC_PERM_COMMAND_ADDHIDDENITEM                          = 8000,
     RBAC_PERM_COMMAND_HIDEITEM                               = 8001,
     RBAC_PERM_COMMAND_UNHIDEITEM                             = 8002,
+    RBAC_PERM_SPECIAL_SHOW_PRIVATE_INFO                      = 8003,
 
     RBAC_PERM_MAX
 };
