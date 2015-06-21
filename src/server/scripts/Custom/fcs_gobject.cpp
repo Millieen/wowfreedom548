@@ -220,10 +220,9 @@ public:
         handler->PSendSysMessage("SELECTED GAME OBJECT: |cFFFFFFFF|Hgameobject_entry:%u|h[%s]|h|r", template_id, gameobject_info->name.c_str());
         handler->PSendSysMessage("> GUID: %u", guid_low);
         handler->PSendSysMessage("> Entry: %u", template_id);
-        handler->PSendSysMessage("> CREATED BY: %s (ID: %u)", creator_username.c_str(), creator_id);
-        handler->PSendSysMessage("> LAST MODIFIED BY: %s (ID: %u)", editor_username.c_str(), editor_id);
-        handler->PSendSysMessage("> CREATED: %s", created.c_str());
-        handler->PSendSysMessage("> LAST MODIFIED: %s", modified.c_str());
+        handler->PSendSysMessage("> Scale: %.3f", object->GetFloatValue(OBJECT_FIELD_SCALE));
+        handler->PSendSysMessage("> Created by: %s (ID: %u, TIMESTAMP: %s)", creator_username.c_str(), creator_id, created.c_str());
+        handler->PSendSysMessage("> Last modified by: %s (ID: %u, TIMESTAMP: %s)", editor_username.c_str(), editor_id, modified.c_str());
         handler->PSendSysMessage("> Position: X: %f Y: %f Z: %f", pos_x, pos_y, pos_z);
         handler->PSendSysMessage("> Distance: %.2f yards", distance);
 
@@ -295,9 +294,7 @@ public:
         object->RemoveFromWorld();
         object->AddToWorld();
 
-        handler->PSendSysMessage(">> Object successfully scaled from %.2f to %.2f!", old_scale, scale);
-
-
+        handler->PSendSysMessage(">> Object successfully scaled from %.3f to %.3f!", old_scale, scale);
 
         return true;
     }
