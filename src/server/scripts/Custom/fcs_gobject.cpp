@@ -46,16 +46,72 @@ public:
             { "turn",       rbac::RBAC_PERM_COMMAND_GOBJECT_TURN,           false, &HandleGameObjectTurnCommand,                    "", NULL },
             { "add",        rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,            false, &HandleGameObjectAddCommand,                     "", NULL },
             { "spawn",      rbac::RBAC_PERM_COMMAND_GOBJECT_ADD,            false, &HandleGameObjectAddCommand,                     "", NULL },
+            { "disable",    rbac::RBAC_PERM_COMMAND_GOBJECT_DISABLE,        false, &HandleGameObjectDisableCommand,                 "", NULL },
+            { "enable",     rbac::RBAC_PERM_COMMAND_GOBJECT_ENABLE,         false, &HandleGameObjectEnableCommand,                  "", NULL },
             { NULL, 0, false, NULL, "", NULL }
         };
 
         static ChatCommand commandTable[] =
         {
-            { "gobject", rbac::RBAC_PERM_COMMAND_GOBJECT, false, NULL, "", gobjectCommandTable },
+            { "gobject",    rbac::RBAC_PERM_COMMAND_GOBJECT,                false, NULL,                                            "", gobjectCommandTable },
             { NULL, 0, false, NULL, "", NULL }
         };
 
         return commandTable;
+    }
+
+    static bool HandleGameObjectDisableCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args) {
+            handler->PSendSysMessage("Please specify Entry ID of the object to disable.");
+            return true;
+        }
+
+        // number or [name] Shift-click form |color|Hgameobject_entry:go_id|h[name]|h|r
+        char* id = handler->extractKeyFromLink((char*)args, "Hgameobject_entry");
+        uint32 entry_id = atol(id);
+
+        if (!entry_id)
+        {
+            handler->PSendSysMessage("Game object (Entry ID: %u) not found", entry_id);
+            return true;
+        }
+
+        PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DISABLED);
+        stmt->setUInt8(0, 1);
+        stmt->setUInt32(1, entry_id);
+        WorldDatabase.Execute(stmt);
+
+        handler->PSendSysMessage(">> Game object (Entry ID: %u) has been disabled from spawning and listing.", entry_id);
+
+        return true;
+    }
+
+    static bool HandleGameObjectEnableCommand(ChatHandler* handler, char const* args)
+    {
+        if (!*args) {
+            handler->PSendSysMessage("Please specify Entry ID of the object to enable.");
+            return true;
+        }
+
+        // number or [name] Shift-click form |color|Hgameobject_entry:go_id|h[name]|h|r
+        char* id = handler->extractKeyFromLink((char*)args, "Hgameobject_entry");
+        uint32 entry_id = atol(id);
+
+        if (!entry_id)
+        {
+            handler->PSendSysMessage("Game object (Entry ID: %u) not found", entry_id);
+            return true;
+        }
+
+        PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_DISABLED);
+        stmt->setUInt8(0, 0);
+        stmt->setUInt32(1, entry_id);
+        WorldDatabase.Execute(stmt);
+
+        handler->PSendSysMessage(">> Game object (Entry ID: %u) has been enabled for spawning and listing.", entry_id);
+
+        return true;
     }
 
     static bool HandleGameObjectSelectCommand(ChatHandler* handler, char const* args)
@@ -93,7 +149,7 @@ public:
 
         // 0:guid, 1:id, 2:position_x, 3:position_y, 4:position_z, 5:map, 6:distance
         Field * fields = result->Fetch();
-        uint32 guid = fields[0].GetUInt32();
+        uint32 guid_low = fields[0].GetUInt32();
         uint32 template_id = fields[1].GetUInt32();
         float pos_x = fields[2].GetFloat();
         float pos_y = fields[3].GetFloat();
@@ -105,20 +161,30 @@ public:
 
         if (!gameobject_info)
         {
-            handler->PSendSysMessage("Selected game object (EID: %u) (GUID: %u) does not exist in gameobject_template table! Contact devs about this.", template_id, guid);
+            handler->PSendSysMessage("Selected game object (EID: %u) (GUID: %u) does not exist in gameobject_template table! Contact devs about this.", template_id, guid_low);
             return true;
         }
 
-        // get game object's history
-        PreparedStatement * history_stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_GAMEOBJECT_HISTORY);
-        history_stmt->setUInt32(0, guid);
-        PreparedQueryResult history_result = WorldDatabase.Query(history_stmt);
-        Field * history_field = history_result->Fetch();
+        // set game object to player's selection
+        source->SetSelectedGameObject(guid_low);
 
-        uint32 creator_id = history_field[0].GetUInt32();
-        uint32 editor_id = history_field[1].GetUInt32();
-        std::string created = history_field[2].GetString();
-        std::string modified = history_field[3].GetString();
+        GameObject* object = NULL;
+
+        // by DB guid
+        if (GameObjectData const* go_data = sObjectMgr->GetGOData(guid_low))
+            object = handler->GetObjectGlobalyWithGuidOrNearWithDbGuid(guid_low, go_data->id);
+
+        if (!object) {
+            handler->PSendSysMessage("Game object (ID: %u) exists in database but not in-game. Please, inform developers about this bug. Selection on this object still succeeds, however.", guid_low);
+            return true;
+        }
+
+        // fill game object's history
+        uint32 creator_id = object->GetCreator();
+        uint32 editor_id = object->GetEditor();
+        uint32 account_id = handler->GetSession()->GetAccountId();
+        std::string created = TimeToTimestampStr(object->GetCreatedTimestamp());
+        std::string modified = TimeToTimestampStr(object->GetModifiedTimestamp());
 
         // get account usernames if source has enough permission
         std::string creator_username = MSG_COLOR_RED "<HIDDEN>" "|r"; 
@@ -127,31 +193,39 @@ public:
         if (handler->HasPermission(rbac::RBAC_PERM_SPECIAL_SHOW_PRIVATE_INFO))
         {
             // get creator username
-            if (!sAccountMgr->GetName(handler->GetSession()->GetAccountId(), creator_username))
+            if (!sAccountMgr->GetName(creator_id, creator_username))
             {
                 creator_username = "<NONE>";
             }
 
             // get editor username
-            if (!sAccountMgr->GetName(handler->GetSession()->GetAccountId(), editor_username))
+            if (!sAccountMgr->GetName(editor_id, editor_username))
             {
                 editor_username = "<NONE>";
             }
         }
 
+        if (creator_id == account_id)
+        {
+            creator_username += " [YOU]";
+        }
+
+        if (editor_id == account_id)
+        {
+            editor_username += " [YOU]";
+        }
+
         // display information to the source
         // [name] Shift-click form: |color|Hgameobject_entry:go_id|h[name]|h|r
         handler->PSendSysMessage("SELECTED GAME OBJECT: |cFFFFFFFF|Hgameobject_entry:%u|h[%s]|h|r", template_id, gameobject_info->name.c_str());
-        handler->PSendSysMessage("> GUID: %u", guid);
+        handler->PSendSysMessage("> GUID: %u", guid_low);
         handler->PSendSysMessage("> Entry: %u", template_id);
-        handler->PSendSysMessage("> OWNER: %s (ID: %u)", creator_username.c_str(), creator_id);
+        handler->PSendSysMessage("> CREATED BY: %s (ID: %u)", creator_username.c_str(), creator_id);
         handler->PSendSysMessage("> LAST MODIFIED BY: %s (ID: %u)", editor_username.c_str(), editor_id);
         handler->PSendSysMessage("> CREATED: %s", created.c_str());
         handler->PSendSysMessage("> LAST MODIFIED: %s", modified.c_str());
         handler->PSendSysMessage("> Position: X: %f Y: %f Z: %f", pos_x, pos_y, pos_z);
         handler->PSendSysMessage("> Distance: %.2f yards", distance);
-
-        source->SetSelectedGameObject(guid);
 
         return true;
     }
@@ -210,12 +284,20 @@ public:
         float old_scale = object->GetObjectScale();
         object->SetObjectScale(scale);
 
+        // Update editor
+        object->SetEditor(handler->GetSession()->GetAccountId());
+
+        // Update modified datetime
+        object->SetModifiedTimestamp(time(NULL));
+
         //TODO: (Azeroc) Fix object resetting to old state after moving prematurely after the command
         object->SaveToDB();
         object->RemoveFromWorld();
         object->AddToWorld();
 
         handler->PSendSysMessage(">> Object successfully scaled from %.2f to %.2f!", old_scale, scale);
+
+
 
         return true;
     }
@@ -262,7 +344,6 @@ public:
         return true;
     }
 
-    //spawn go
     static bool HandleGameObjectAddCommand(ChatHandler* handler, char const* args)
     {
         if (!*args) {
@@ -325,6 +406,14 @@ public:
             return false;
         }
 
+        uint32 account_id = handler->GetSession()->GetAccountId();
+
+        // Update creator
+        object->SetCreator(account_id);
+
+        // Update editor
+        object->SetEditor(account_id);
+
         // fill the gameobject data and save to the db
         object->SaveToDB(map->GetId(), (1 << map->GetSpawnMode()), source->GetPhaseMgr().GetPhaseMaskForSpawn());
 
@@ -343,25 +432,9 @@ public:
         // add created game object to player's selection
         source->SetSelectedGameObject(guid_low);
 
-        // update game object's history
-        uint32 account_id = handler->GetSession()->GetAccountId();
-
-        // Update creator
-        object->UpdateCreator(account_id);
-
-        // Update editor
-        object->UpdateEditor(account_id);
-
-        // Update create datetime
-        object->UpdateCreatedDatetime(time(NULL));
-
-        // Update modified datetime
-        object->UpdateModifiedDatetime(time(NULL));
-
         return true;
     }
 
-    //delete object by selection or guid
     static bool HandleGameObjectDeleteCommand(ChatHandler* handler, char const* args)
     {
         uint32 guid_low;
@@ -449,6 +522,12 @@ public:
         object->Relocate(object->GetPositionX(), object->GetPositionY(), object->GetPositionZ(), new_o);
         object->UpdateRotationFields();
 
+        // Update editor
+        object->SetEditor(handler->GetSession()->GetAccountId());
+
+        // Update modified datetime
+        object->SetModifiedTimestamp(time(NULL));
+
         //TODO: (Azeroc) Fix object resetting to old state after moving prematurely after the command
         object->SaveToDB();
         object->RemoveFromWorld();
@@ -513,6 +592,12 @@ public:
 
             object->Relocate(x, y, z, source->GetOrientation());
         }
+
+        // Update editor
+        object->SetEditor(handler->GetSession()->GetAccountId());
+
+        // Update modified datetime
+        object->SetModifiedTimestamp(time(NULL));
 
         //TODO: (Azeroc) Fix object resetting to old state after moving prematurely after the command
         object->SaveToDB();
@@ -581,7 +666,18 @@ public:
         }
 
         object->SetPhaseMask(phase_mask, true);
+
+        // Update editor
+        object->SetEditor(handler->GetSession()->GetAccountId());
+
+        // Update modified datetime
+        object->SetModifiedTimestamp(time(NULL));
+
         object->SaveToDB();
+
+        // TODO: Display phase mask in binary for better phase-masks's visualization
+        handler->PSendSysMessage(">> Game object (GUID: %u) successfully phased (PhaseMask: %u).", guid_low, phase_mask);
+
         return true;
     }
 
@@ -630,7 +726,6 @@ public:
         return true;
     }
 
-    //show info of gameobject
     static bool HandleGameObjectInfoCommand(ChatHandler* handler, char const* args)
     {
         uint32 entry;

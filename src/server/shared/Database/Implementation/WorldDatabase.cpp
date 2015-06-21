@@ -87,7 +87,7 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_INS_CREATURE, "INSERT INTO creature (guid, id , map, spawnMask, phaseMask, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, currentwaypoint, curhealth, curmana, MovementType, npcflag, unit_flags, dynamicflags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(WORLD_DEL_GAME_EVENT_CREATURE, "DELETE FROM game_event_creature WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(WORLD_DEL_GAME_EVENT_MODEL_EQUIP, "DELETE FROM game_event_model_equip WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_INS_GAMEOBJECT, "INSERT INTO gameobject (guid, id, map, spawnMask, phaseMask, position_x, position_y, position_z, orientation, rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state, size) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_INS_GAMEOBJECT, "INSERT INTO gameobject (guid, id, map, spawnMask, phaseMask, position_x, position_y, position_z, orientation, rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state, size, creator, editor, created, modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, from_unixtime(?), from_unixtime(?))", CONNECTION_ASYNC);
     PrepareStatement(WORLD_INS_DISABLES, "INSERT INTO disables (entry, sourceType, flags, comment) VALUES (?, ?, ?, ?)", CONNECTION_ASYNC);
     PrepareStatement(WORLD_SEL_DISABLES, "SELECT entry FROM disables WHERE entry = ? AND sourceType = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_DEL_DISABLES, "DELETE FROM disables WHERE entry = ? AND sourceType = ?", CONNECTION_ASYNC);
@@ -111,21 +111,11 @@ void WorldDatabaseConnection::DoPrepareStatements()
     // CUSTOM GOBJECT CMDS
     PrepareStatement(WORLD_SEL_GAMEOBJECT_NEAREST_SINGLE, "SELECT guid, id, position_x, position_y, position_z, map, SQRT(POW(position_x - ?, 2) + POW(position_y - ?, 2) + POW(position_z - ?, 2)) AS distance FROM gameobject WHERE map = ? ORDER BY distance LIMIT 1", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_GAMEOBJECT_NEAREST_SINGLE_EID, "SELECT guid, id, position_x, position_y, position_z, map, SQRT(POW(position_x - ?, 2) + POW(position_y - ?, 2) + POW(position_z - ?, 2)) AS distance FROM gameobject WHERE map = ? AND id = ? ORDER BY distance LIMIT 1", CONNECTION_SYNCH);
-    PrepareStatement(WORLD_SEL_GAMEOBJECT_HISTORY, "SELECT creator, editor, DATE_FORMAT(created, '%Y-%m-%d %T'), DATE_FORMAT(modified, '%Y-%m-%d %T') FROM gameobject WHERE guid = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_GAMEOBJECT_IS_DISABLED, "SELECT 1 FROM gameobject_template WHERE disabled = 1 AND entry = ?", CONNECTION_SYNCH);
-    PrepareStatement(WORLD_UPD_GAMEOBJECT_CREATOR, "UPDATE gameobject SET creator = ? WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_UPD_GAMEOBJECT_EDITOR, "UPDATE gameobject SET editor = ? WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_UPD_GAMEOBJECT_CREATED, "UPDATE gameobject SET created = from_unixtime(?) WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_UPD_GAMEOBJECT_MODIFIED, "UPDATE gameobject SET modified = from_unixtime(?) WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(WORLD_UPD_GAMEOBJECT_DISABLED, "UPDATE gameobject_template SET disabled = ? WHERE entry = ?", CONNECTION_ASYNC);
 
     // CUSTOM NPC CMDS
-    PrepareStatement(WORLD_SEL_CREATURE_HISTORY, "SELECT creator, editor, DATE_FORMAT(created, '%Y-%m-%d %T'), DATE_FORMAT(modified, '%Y-%m-%d %T') FROM creature WHERE guid = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_CREATURE_IS_DISABLED, "SELECT 1 FROM creature_template WHERE disabled = 1 AND entry = ?", CONNECTION_SYNCH);
-    PrepareStatement(WORLD_UPD_CREATURE_CREATOR, "UPDATE creature SET creator = ? WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_UPD_CREATURE_EDITOR, "UPDATE creature SET editor = ? WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_UPD_CREATURE_CREATED, "UPDATE creature SET created = from_unixtime(?) WHERE guid = ?", CONNECTION_ASYNC);
-    PrepareStatement(WORLD_UPD_CREATURE_MODIFIED, "UPDATE creature SET modified = from_unixtime(?) WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(WORLD_UPD_CREATURE_DISABLED, "UPDATE creature_template SET disabled = ? WHERE entry = ?", CONNECTION_ASYNC);
 
     // CUSTOM ITEM CMDS

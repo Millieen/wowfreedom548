@@ -718,6 +718,8 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_GOBJECT_SCALE                          = 3000,
     RBAC_PERM_COMMAND_GOBJECT_PHASE                          = 3001,
     RBAC_PERM_COMMAND_GOBJECT_SELECT                         = 3002,
+    RBAC_PERM_COMMAND_GOBJECT_DISABLE                        = 3003,
+    RBAC_PERM_COMMAND_GOBJECT_ENABLE                         = 3004,
 
     // CUSTOM GOTO CMDS         4000 <= X < 5000
 

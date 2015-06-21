@@ -609,6 +609,10 @@ struct GameObjectData
     uint8 artKit;
     bool dbData;
     float size;
+    uint32 creator_id;
+    uint32 editor_id;
+    time_t created;
+    time_t modified;
 };
 
 // For containers:  [GO_NOT_READY]->GO_READY (close)->GO_ACTIVATED (open) ->GO_JUST_DEACTIVATED->GO_READY        -> ...
@@ -635,14 +639,17 @@ class GameObject : public WorldObject, public GridObject<GameObject>, public Map
         explicit GameObject();
         ~GameObject();
 
-        // Freedom custom game object commands BEGIN
-    
-        void UpdateCreator(uint32 account_id);
-        void UpdateEditor(uint32 account_id);
-        void UpdateCreatedDatetime(time_t t);
-        void UpdateModifiedDatetime(time_t t);
+        // Freedom custom game object commands [BEGIN]
+        void SetCreator(uint32 account_id) { m_creator_id = account_id; }
+        void SetEditor(uint32 account_id) { m_editor_id = account_id; }
+        void SetCreatedTimestamp(time_t t) { m_created = t; }
+        void SetModifiedTimestamp(time_t t) { m_modified = t; }
 
-        // Freedom custom game object commands END
+        uint32 GetCreator() { return m_creator_id; }
+        uint32 GetEditor() { return m_editor_id; }
+        time_t GetCreatedTimestamp() { return m_created; }
+        time_t GetModifiedTimestamp() { return m_modified; }
+        // Freedom custom game object commands [END]
 
         void BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, Player* target) const;
 
@@ -650,7 +657,7 @@ class GameObject : public WorldObject, public GridObject<GameObject>, public Map
         void RemoveFromWorld();
         void CleanupsBeforeDelete(bool finalCleanup = true);
 
-        bool Create(uint32 guidlow, uint32 name_id, Map* map, uint32 phaseMask, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state, uint32 artKit = 0, float size = -1.0f);
+        bool Create(uint32 guidlow, uint32 name_id, Map* map, uint32 phaseMask, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state, uint32 artKit = 0, float size = -1.0f, uint32 creator_id = 0, uint32 editor_id = 0, time_t created = time(NULL), time_t modified = time(NULL));
         void Update(uint32 p_time);
         static GameObject* GetGameObject(WorldObject& object, uint64 guid);
         GameObjectTemplate const* GetGOInfo() const { return m_goInfo; }
@@ -841,6 +848,14 @@ class GameObject : public WorldObject, public GridObject<GameObject>, public Map
     protected:
         bool AIM_Initialize();
         void UpdateModel();                                 // updates model in case displayId were changed
+
+        // WoW Freedom custom variables [BEGIN]
+        uint32      m_creator_id;
+        uint32      m_editor_id;
+        time_t      m_created;
+        time_t      m_modified;
+        // WoW Freedom custom variables [END]
+
         uint32      m_spellId;
         time_t      m_respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),
         uint32      m_respawnDelayTime;                     // (secs) if 0 then current GO state no dependent from timer

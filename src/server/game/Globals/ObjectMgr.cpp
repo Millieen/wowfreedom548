@@ -1898,7 +1898,8 @@ void ObjectMgr::LoadGameobjects()
     QueryResult result = WorldDatabase.Query("SELECT gameobject.guid, id, map, position_x, position_y, position_z, orientation, "
     //   7          8          9          10         11             12            13     14         15         16          17
         "rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state, spawnMask, phaseMask, eventEntry, pool_entry "
-        ", size " // 18
+    //     18    19       20      21                       22
+        ", size, creator, editor, UNIX_TIMESTAMP(created), UNIX_TIMESTAMP(modified) " 
         "FROM gameobject LEFT OUTER JOIN game_event_gameobject ON gameobject.guid = game_event_gameobject.guid "
         "LEFT OUTER JOIN pool_gameobject ON gameobject.guid = pool_gameobject.guid");
 
@@ -1996,6 +1997,10 @@ void ObjectMgr::LoadGameobjects()
         int16 gameEvent     = fields[16].GetInt8();
         uint32 PoolId       = fields[17].GetUInt32();
         data.size           = fields[18].GetFloat();
+        data.creator_id     = fields[19].GetUInt32();
+        data.editor_id      = fields[20].GetUInt32();
+        data.created        = fields[21].GetUInt64();
+        data.modified       = fields[22].GetUInt64();
         
         if (data.size > 30.0f || data.size < 0.0f) {
             sLog->outError("sql.sql", "Table `gameobject` has gameobject (GUID: %u Entry: %u) with invalid size (%f) value, skip", guid, data.id, data.size);

@@ -64,6 +64,11 @@ GameObject::GameObject() : WorldObject(false), MapObject(),
     m_groupLootTimer = 0;
     lootingGroupLowGUID = 0;
 
+    m_creator_id = 0;
+    m_editor_id = 0;
+    m_created = time(NULL);
+    m_modified = time(NULL);
+
     ResetLootMode(); // restore default loot mode
 }
 
@@ -74,43 +79,6 @@ GameObject::~GameObject()
     //if (m_uint32Values)                                      // field array can be not exist if GameOBject not loaded
     //    CleanupsBeforeDelete();
 }
-
-
-/* WOW FREEDOM CUSTOM METODS [BEGIN] */
-
-void GameObject::UpdateCreator(uint32 account_id)
-{
-    PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_CREATOR);
-    stmt->setUInt32(0, account_id);
-    stmt->setUInt32(1, GetGUIDLow());
-    WorldDatabase.Execute(stmt);
-}
-
-void GameObject::UpdateEditor(uint32 account_id)
-{
-    PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_EDITOR);
-    stmt->setUInt32(0, account_id);
-    stmt->setUInt32(1, GetGUIDLow());
-    WorldDatabase.Execute(stmt);
-}
-
-void GameObject::UpdateCreatedDatetime(time_t t)
-{
-    PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_CREATED);
-    stmt->setUInt64(0, t);
-    stmt->setUInt32(1, GetGUIDLow());
-    WorldDatabase.Execute(stmt);
-}
-
-void GameObject::UpdateModifiedDatetime(time_t t)
-{
-    PreparedStatement * stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_GAMEOBJECT_MODIFIED);
-    stmt->setUInt64(0, t);
-    stmt->setUInt32(1, GetGUIDLow());
-    WorldDatabase.Execute(stmt);
-}
-
-/* WOW FREEDOM CUSTOM METODS [END] */
 
 bool GameObject::AIM_Initialize()
 {
@@ -211,7 +179,7 @@ void GameObject::RemoveFromWorld()
     }
 }
 
-bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, uint32 phaseMask, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state, uint32 artKit, float size)
+bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, uint32 phaseMask, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state, uint32 artKit, float size, uint32 creator_id, uint32 editor_id, time_t created, time_t modified)
 {
     ASSERT(map);
     SetMap(map);
@@ -264,6 +232,11 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, uint32 phaseMa
     } else {
         SetObjectScale(goinfo->size);
     }
+
+    SetCreator(creator_id);
+    SetEditor(editor_id);
+    SetCreatedTimestamp(created);
+    SetModifiedTimestamp(modified);
 
     SetUInt32Value(GAMEOBJECT_FIELD_FACTION_TEMPLATE, goinfo->faction);
     SetUInt32Value(GAMEOBJECT_FIELD_FLAGS, goinfo->flags);
@@ -783,6 +756,10 @@ void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask, uint32 phaseMask)
     data.spawnMask = spawnMask;
     data.artKit = GetGoArtKit();
     data.size = GetFloatValue(OBJECT_FIELD_SCALE);
+    data.creator_id = GetCreator();
+    data.editor_id = GetEditor();
+    data.created = GetCreatedTimestamp();
+    data.modified = GetModifiedTimestamp();
 
     // Update in DB
     SQLTransaction trans = WorldDatabase.BeginTransaction();
@@ -811,6 +788,10 @@ void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask, uint32 phaseMask)
     stmt->setUInt8(index++, GetGoAnimProgress());
     stmt->setUInt8(index++, uint8(GetGoState()));
     stmt->setFloat(index++, GetFloatValue(OBJECT_FIELD_SCALE));
+    stmt->setUInt32(index++, GetCreator());
+    stmt->setUInt32(index++, GetEditor());
+    stmt->setUInt64(index++, GetCreatedTimestamp());
+    stmt->setUInt64(index++, GetModifiedTimestamp());
     trans->Append(stmt);
 
     WorldDatabase.CommitTransaction(trans);
@@ -843,11 +824,15 @@ bool GameObject::LoadGameObjectFromDB(uint32 guid, Map* map, bool addToMap)
     GOState go_state = data->go_state;
     uint32 artKit = data->artKit;
     float size = data->size;
+    uint32 creator_id = data->creator_id;
+    uint32 editor_id = data->editor_id;
+    time_t created = data->created;
+    time_t modified = data->modified;
 
     m_DBTableGuid = guid;
     if (map->GetInstanceId() != 0) guid = sObjectMgr->GenerateLowGuid(HIGHGUID_GAMEOBJECT);
 
-    if (!Create(guid, entry, map, phaseMask, x, y, z, ang, rotation0, rotation1, rotation2, rotation3, animprogress, go_state, artKit, size))
+    if (!Create(guid, entry, map, phaseMask, x, y, z, ang, rotation0, rotation1, rotation2, rotation3, animprogress, go_state, artKit, size, creator_id, editor_id, created, modified))
         return false;
 
     if (data->spawntimesecs >= 0)

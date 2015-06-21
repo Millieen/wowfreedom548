@@ -45,6 +45,7 @@ INSERT INTO auth.rbac_permissions (`id`, `name`) VALUES
 (1027, 'Command: freedom item list'),
 -- [.gobject]
 (3000, 'Command: gobject set scale'), (3001, 'Command: gobject phase'), (3002, 'Command: gobject select'),
+(3003, 'Command: gobject disable'), (3004, 'Command: gobject enable'),
 -- [misc]
 (8000, 'Allow adding hidden items through additem command'),
 (8001, 'Command: hideitem'),
@@ -190,6 +191,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 
 -- [CUSTOM COMMANDS]
 (@GM, 1020), (@GM, 1021), -- freedom tele add/del, freedom morph add/del
+(@GM, 3003), (@GM, 3004), -- gobject disable/enable
 (@GM, 8001), (@GM, 8002), -- hide/unhide items for the public (GMLVL 0 and 1 / Players & Moderators)
 
 -- [190 - Role: [GM3] Administrator]
