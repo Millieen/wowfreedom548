@@ -675,8 +675,10 @@ Player::Player(WorldSession* session): Unit(true), phaseMgr(this)
 #pragma warning(default:4355)
 #endif
 
-    // WoW Freedom variable init
+    // WoW Freedom member init [BEGIN]
     m_selected_go = 0;
+    m_selected_npc = 0;
+    // WoW Freedom member init [END]
 
     m_speakTime = 0;
     m_speakCount = 0;
