@@ -39,6 +39,13 @@
 GameObject::GameObject() : WorldObject(false), MapObject(),
     m_model(NULL), m_goValue(), m_AI(NULL)
 {
+    // WoW Freedom member init [BEGIN]
+    m_creator_id = 0;
+    m_editor_id = 0;
+    m_created = time(NULL);
+    m_modified = time(NULL);
+    // WoW Freedom member init [END]
+
     m_objectType |= TYPEMASK_GAMEOBJECT;
     m_objectTypeId = TYPEID_GAMEOBJECT;
 
@@ -63,11 +70,6 @@ GameObject::GameObject() : WorldObject(false), MapObject(),
     m_lootRecipientGroup = 0;
     m_groupLootTimer = 0;
     lootingGroupLowGUID = 0;
-
-    m_creator_id = 0;
-    m_editor_id = 0;
-    m_created = time(NULL);
-    m_modified = time(NULL);
 
     ResetLootMode(); // restore default loot mode
 }
