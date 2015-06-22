@@ -266,6 +266,11 @@ struct CreatureData
     uint32 unit_flags;                                      // enum UnitFlags mask values
     uint32 dynamicflags;
     bool dbData;
+    float size;
+    uint32 creator_id;
+    uint32 editor_id;
+    time_t created;
+    time_t modified;
 };
 
 struct CreatureModelInfo
@@ -422,6 +427,18 @@ class Creature : public Unit, public GridObject<Creature>, public MapObject
         explicit Creature(bool isWorldObject = false);
         virtual ~Creature();
 
+        // WoW Freedom custom methods [BEGIN]
+        void SetCreator(uint32 account_id) { m_creator_id = account_id; }
+        void SetEditor(uint32 account_id) { m_editor_id = account_id; }
+        void SetCreatedTimestamp(time_t t) { m_created = t; }
+        void SetModifiedTimestamp(time_t t) { m_modified = t; }
+
+        uint32 GetCreator() { return m_creator_id; }
+        uint32 GetEditor() { return m_editor_id; }
+        time_t GetCreatedTimestamp() { return m_created; }
+        time_t GetModifiedTimestamp() { return m_modified; }
+        // WoW Freedom custom methods [END]
+
         void AddToWorld();
         void RemoveFromWorld();
 
@@ -430,7 +447,7 @@ class Creature : public Unit, public GridObject<Creature>, public MapObject
 
         void DisappearAndDie();
 
-        bool Create(uint32 guidlow, Map* map, uint32 phaseMask, uint32 Entry, uint32 vehId, uint32 team, float x, float y, float z, float ang, const CreatureData* data = NULL);
+        bool Create(uint32 guidlow, Map* map, uint32 phaseMask, uint32 Entry, uint32 vehId, uint32 team, float x, float y, float z, float ang, const CreatureData* data = NULL, float size = -1.0f, uint32 creator_id = 0, uint32 editor_id = 0, time_t created = time(NULL), time_t modified = time(NULL));
         bool LoadCreaturesAddon(bool reload = false);
         void SelectLevel(const CreatureTemplate* cinfo);
         void LoadEquipment(int8 id = 1, bool force = false);
@@ -663,6 +680,13 @@ class Creature : public Unit, public GridObject<Creature>, public MapObject
     protected:
         bool CreateFromProto(uint32 guidlow, uint32 Entry, uint32 vehId, uint32 team, const CreatureData* data = NULL);
         bool InitEntry(uint32 entry, uint32 team=ALLIANCE, const CreatureData* data=NULL);
+
+        // WoW Freedom custom variables [BEGIN]
+        uint32      m_creator_id;
+        uint32      m_editor_id;
+        time_t      m_created;
+        time_t      m_modified;
+        // WoW Freedom custom variables [END]
 
         // vendor items
         VendorItemCounts m_vendorItemCounts;

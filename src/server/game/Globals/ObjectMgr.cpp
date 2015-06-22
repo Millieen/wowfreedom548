@@ -1588,7 +1588,9 @@ void ObjectMgr::LoadCreatures()
     //                                               0              1   2    3        4             5           6           7           8            9              10
     QueryResult result = WorldDatabase.Query("SELECT creature.guid, id, map, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, "
     //   11               12         13       14            15         16         17          18          19                20                   21
-        "currentwaypoint, curhealth, curmana, MovementType, spawnMask, phaseMask, eventEntry, pool_entry, creature.npcflag, creature.unit_flags, creature.dynamicflags "
+        "currentwaypoint, curhealth, curmana, MovementType, spawnMask, phaseMask, eventEntry, pool_entry, creature.npcflag, creature.unit_flags, creature.dynamicflags, "
+    //   22    23       24      25                       26
+        "size, creator, editor, UNIX_TIMESTAMP(created), UNIX_TIMESTAMP(modified) "
         "FROM creature "
         "LEFT OUTER JOIN game_event_creature ON creature.guid = game_event_creature.guid "
         "LEFT OUTER JOIN pool_creature ON creature.guid = pool_creature.guid");
@@ -1645,6 +1647,11 @@ void ObjectMgr::LoadCreatures()
         data.npcflag        = fields[19].GetUInt32();
         data.unit_flags     = fields[20].GetUInt32();
         data.dynamicflags   = fields[21].GetUInt32();
+        data.size           = fields[22].GetUInt32();
+        data.creator_id     = fields[23].GetUInt32();
+        data.editor_id      = fields[24].GetUInt32();
+        data.created        = fields[25].GetUInt64();
+        data.modified       = fields[26].GetUInt64();
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(data.mapid);
         if (!mapEntry)
@@ -1711,6 +1718,12 @@ void ObjectMgr::LoadCreatures()
         {
             TC_LOG_ERROR("sql.sql", "Table `creature` have creature (GUID: %u Entry: %u) with `phaseMask`=0 (not visible for anyone), set to 1.", guid, data.id);
             data.phaseMask = 1;
+        }
+
+        if (data.size > 10.0f || data.size < 0.0f)
+        {
+            TC_LOG_ERROR("sql.sql", "Table `creature` have creature (GUID: %u Entry: %u) with `size` > 10.0f or `size` < 0.0f (not in valid range), set to 1.", guid, data.id);
+            data.size = 1;
         }
 
         // Add to grid if not managed by the game event or pool system

@@ -84,7 +84,7 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_SEL_CREATURE_BY_ID, "SELECT guid FROM creature WHERE id = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_GAMEOBJECT_NEAREST, "SELECT guid, id, position_x, position_y, position_z, map, (POW(position_x - ?, 2) + POW(position_y - ?, 2) + POW(position_z - ?, 2)) AS order_ FROM gameobject WHERE map = ? AND (POW(position_x - ?, 2) + POW(position_y - ?, 2) + POW(position_z - ?, 2)) <= ? ORDER BY order_", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_CREATURE_NEAREST, "SELECT guid, id, position_x, position_y, position_z, map, (POW(position_x - ?, 2) + POW(position_y - ?, 2) + POW(position_z - ?, 2)) AS order_ FROM creature WHERE map = ? AND (POW(position_x - ?, 2) + POW(position_y - ?, 2) + POW(position_z - ?, 2)) <= ? ORDER BY order_", CONNECTION_SYNCH);
-    PrepareStatement(WORLD_INS_CREATURE, "INSERT INTO creature (guid, id , map, spawnMask, phaseMask, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, currentwaypoint, curhealth, curmana, MovementType, npcflag, unit_flags, dynamicflags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_INS_CREATURE, "INSERT INTO creature (guid, id , map, spawnMask, phaseMask, modelid, equipment_id, position_x, position_y, position_z, orientation, spawntimesecs, spawndist, currentwaypoint, curhealth, curmana, MovementType, npcflag, unit_flags, dynamicflags, size, creator, editor, created, modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, from_unixtime(?), from_unixtime(?))", CONNECTION_ASYNC);
     PrepareStatement(WORLD_DEL_GAME_EVENT_CREATURE, "DELETE FROM game_event_creature WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(WORLD_DEL_GAME_EVENT_MODEL_EQUIP, "DELETE FROM game_event_model_equip WHERE guid = ?", CONNECTION_ASYNC);
     PrepareStatement(WORLD_INS_GAMEOBJECT, "INSERT INTO gameobject (guid, id, map, spawnMask, phaseMask, position_x, position_y, position_z, orientation, rotation0, rotation1, rotation2, rotation3, spawntimesecs, animprogress, state, size, creator, editor, created, modified) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, from_unixtime(?), from_unixtime(?))", CONNECTION_ASYNC);
@@ -115,6 +115,8 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_UPD_GAMEOBJECT_DISABLED, "UPDATE gameobject_template SET disabled = ? WHERE entry = ?", CONNECTION_ASYNC);
 
     // CUSTOM NPC CMDS
+    PrepareStatement(WORLD_SEL_CREATURE_NEAREST_SINGLE, "SELECT guid, id, position_x, position_y, position_z, map, SQRT(POW(position_x - ?, 2) + POW(position_y - ?, 2) + POW(position_z - ?, 2)) AS distance FROM creature WHERE map = ? ORDER BY distance LIMIT 1", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_SEL_CREATURE_NEAREST_SINGLE_EID, "SELECT guid, id, position_x, position_y, position_z, map, SQRT(POW(position_x - ?, 2) + POW(position_y - ?, 2) + POW(position_z - ?, 2)) AS distance FROM creature WHERE map = ? AND id = ? ORDER BY distance LIMIT 1", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_CREATURE_IS_DISABLED, "SELECT 1 FROM creature_template WHERE disabled = 1 AND entry = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_UPD_CREATURE_DISABLED, "UPDATE creature_template SET disabled = ? WHERE entry = ?", CONNECTION_ASYNC);
 

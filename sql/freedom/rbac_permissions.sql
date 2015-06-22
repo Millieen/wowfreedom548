@@ -46,6 +46,9 @@ INSERT INTO auth.rbac_permissions (`id`, `name`) VALUES
 -- [.gobject]
 (3000, 'Command: gobject set scale'), (3001, 'Command: gobject phase'), (3002, 'Command: gobject select'),
 (3003, 'Command: gobject disable'), (3004, 'Command: gobject enable'),
+-- [.npc]
+(5000, 'Command: npc disable'), (5001, 'Command: npc enable'), (5002, 'Command: npc select/unselect'),
+(5003, 'Command: npc set scale'),
 -- [misc]
 (8000, 'Allow adding hidden items through additem command'),
 (8001, 'Command: hideitem'),
@@ -135,12 +138,13 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@MODERATOR, 542), -- morph
 (@MODERATOR, 543), -- demorph
 (@MODERATOR, 544), (@MODERATOR, 547), (@MODERATOR, 555), (@MODERATOR, 556), (@MODERATOR, 560), (@MODERATOR, 568), (@MODERATOR, 562), (@MODERATOR, 564), (@MODERATOR, 565), (@MODERATOR, 566), -- modify, modify drunk, modify mount, modify phase, modify scale, modify standstate, modify all, modify fly, modify run, modify swim
-(@MODERATOR, 570), (@MODERATOR, 571), (@MODERATOR, 576), (@MODERATOR, 577), (@MODERATOR, 578), (@MODERATOR, 579), (@MODERATOR, 580), (@MODERATOR, 581), (@MODERATOR, 583), (@MODERATOR, 588), (@MODERATOR, 589), (@MODERATOR, 590), (@MODERATOR, 591), (@MODERATOR, 593), (@MODERATOR, 594), (@MODERATOR, 595), (@MODERATOR, 596), (@MODERATOR, 597), (@MODERATOR, 598), (@MODERATOR, 599), (@MODERATOR, 600), (@MODERATOR,601), -- npc
+(@MODERATOR, 570), (@MODERATOR, 571), (@MODERATOR, 576), (@MODERATOR, 578), (@MODERATOR, 579), (@MODERATOR, 580), (@MODERATOR, 583), (@MODERATOR, 585), (@MODERATOR, 587), (@MODERATOR, 589), (@MODERATOR, 593), (@MODERATOR, 594), (@MODERATOR, 595), (@MODERATOR, 596), (@MODERATOR, 597), (@MODERATOR, 598), (@MODERATOR, 599), (@MODERATOR, 600), (@MODERATOR,601), -- npc
 (@MODERATOR, 737), (@MODERATOR, 740), -- tele, tele name
 (@MODERATOR, 767), (@MODERATOR, 768), (@MODERATOR, 769), (@MODERATOR, 770), (@MODERATOR, 771), (@MODERATOR, 772), (@MODERATOR, 773), (@MODERATOR, 774), -- wp
 
 -- [CUSTOM COMMANDS]
 (@MODERATOR, 3000), (@MODERATOR, 3001), (@MODERATOR, 3002), -- gobject: scale/phase/select
+(@MODERATOR, 5002), (@MODERATOR, 5003), -- npc: select/unselect, [set] scale
 
 -- [191 - Role: [GM2] Gamemaster]
 (@GM, @MODERATOR),
@@ -183,8 +187,9 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@GM, 526), -- setskill
 (@GM, 532), -- unmute
 (@GM, 567), -- modify spell
-(@GM, 572), (@GM, 573), (@GM, 574), (@GM, 575), -- npc add formation/item/move/temp
-(@GM, 582), (@GM, 584), (@GM, 585), (@GM, 586), (@GM, 587), (@GM, 592),  -- npc set entry/flag/level/link/model/data
+(@GM, 573), (@GM, 575), -- npc add formation/item/temp
+(@GM, 577), -- npc del item
+(@GM, 582), -- npc set entry
 (@GM, 738), (@GM, 739), (@GM, 741), -- tele add/del/group
 (@GM, 742), (@GM, 743), (@GM, 744), (@GM, 745), (@GM, 746), (@GM, 747), (@GM, 748), (@GM, 749), (@GM, 750), (@GM, 751), (@GM, 752), (@GM, 753), (@GM, 754), (@GM, 755), (@GM, 756), (@GM, 757), (@GM, 758), (@GM, 759), (@GM, 760), -- ticket
 (@GM, 761), (@GM, 762), (@GM, 763), (@GM, 764), (@GM, 765), (@GM, 766), -- titles
@@ -192,6 +197,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 -- [CUSTOM COMMANDS]
 (@GM, 1020), (@GM, 1021), -- freedom tele add/del, freedom morph add/del
 (@GM, 3003), (@GM, 3004), -- gobject disable/enable
+(@GM, 5000), (@GM, 5001), -- npc disable/enable
 (@GM, 8001), (@GM, 8002), -- hide/unhide items for the public (GMLVL 0 and 1 / Players & Moderators)
 
 -- [190 - Role: [GM3] Administrator]
@@ -215,6 +221,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@ADMIN, 518), -- playall
 (@ADMIN, 527), -- showarea
 (@ADMIN, 536), (@ADMIN, 537), (@ADMIN, 538), (@ADMIN, 539), (@ADMIN, 540), (@ADMIN, 541), -- mmap
+(@ADMIN, 584), (@ADMIN, 590), (@ADMIN, 591), (@ADMIN, 592), -- npc set flag/data
 (@ADMIN, 607), (@ADMIN, 608), (@ADMIN, 609), (@ADMIN, 610), (@ADMIN, 611), (@ADMIN, 612), (@ADMIN, 613), (@ADMIN, 614), (@ADMIN, 615), (@ADMIN, 616), (@ADMIN, 617), (@ADMIN, 618), (@ADMIN, 619), (@ADMIN, 620), (@ADMIN, 621), (@ADMIN, 622), (@ADMIN, 623), (@ADMIN, 624), (@ADMIN, 625), (@ADMIN, 626), (@ADMIN, 627), (@ADMIN, 628), (@ADMIN, 629), (@ADMIN, 630), (@ADMIN, 631), (@ADMIN, 632), (@ADMIN, 633), (@ADMIN, 634), (@ADMIN, 635), (@ADMIN, 636), (@ADMIN, 637), (@ADMIN, 638), (@ADMIN, 639), (@ADMIN, 640), (@ADMIN, 641), (@ADMIN, 642), (@ADMIN, 643), (@ADMIN, 644), (@ADMIN, 645), (@ADMIN, 646), (@ADMIN, 647), (@ADMIN, 648), (@ADMIN, 649), (@ADMIN, 650), (@ADMIN, 651), (@ADMIN, 652), (@ADMIN, 653), (@ADMIN, 654), (@ADMIN, 655), (@ADMIN, 656), (@ADMIN, 657), (@ADMIN, 658), (@ADMIN, 659), (@ADMIN, 660), (@ADMIN, 661), (@ADMIN, 662), (@ADMIN, 663), (@ADMIN, 664), (@ADMIN, 665), (@ADMIN, 666), (@ADMIN, 667), (@ADMIN, 668), (@ADMIN, 669), (@ADMIN, 670), (@ADMIN, 671), (@ADMIN, 672), (@ADMIN, 673), (@ADMIN, 674), (@ADMIN, 675), (@ADMIN, 676), (@ADMIN, 677), (@ADMIN, 678), (@ADMIN, 679), (@ADMIN, 680), (@ADMIN, 681), (@ADMIN, 682), (@ADMIN, 683), (@ADMIN, 684), (@ADMIN, 685), (@ADMIN, 686), (@ADMIN, 687), (@ADMIN, 688), (@ADMIN, 689), (@ADMIN, 690), (@ADMIN, 691), (@ADMIN, 692), (@ADMIN, 693), (@ADMIN, 694), (@ADMIN, 695), (@ADMIN, 696), (@ADMIN, 697), (@ADMIN, 698), (@ADMIN, 699), (@ADMIN, 700), (@ADMIN, 701), (@ADMIN, 702), (@ADMIN, 703), (@ADMIN, 704), (@ADMIN, 705), (@ADMIN, 706), (@ADMIN, 707), (@ADMIN, 708), (@ADMIN, 709), -- reload
 (@ADMIN, 710), (@ADMIN, 711), (@ADMIN, 712), (@ADMIN, 713), (@ADMIN, 714), (@ADMIN, 715), (@ADMIN, 716), (@ADMIN, 717), -- reset
 (@ADMIN, 718), (@ADMIN, 719), (@ADMIN, 720), (@ADMIN, 721), (@ADMIN, 722), (@ADMIN, 723), (@ADMIN, 724), (@ADMIN, 725), (@ADMIN, 726), (@ADMIN, 727), (@ADMIN, 728), (@ADMIN, 729), (@ADMIN, 730), (@ADMIN, 731), (@ADMIN, 732), (@ADMIN, 733), (@ADMIN, 734), (@ADMIN, 735), (@ADMIN, 736) -- server

@@ -917,7 +917,26 @@ Creature* ChatHandler::getSelectedCreature()
     if (!m_session)
         return NULL;
 
-    return ObjectAccessor::GetCreatureOrPetOrVehicle(*m_session->GetPlayer(), m_session->GetPlayer()->GetTarget());
+    Player * source = m_session->GetPlayer();
+    Creature * unit = ObjectAccessor::GetCreatureOrPetOrVehicle(*source, source->GetTarget());
+
+    // check if player has stored low_guid selection and try to get unit from it
+    if (!unit)
+    {
+        uint32 guid_low = source->GetSelectedCreature();
+        CreatureData const* cr_data = sObjectMgr->GetCreatureData(guid_low);
+
+        if (cr_data)
+        {
+            unit = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(guid_low, cr_data->id, HIGHGUID_UNIT), (Creature*)NULL);
+            if (!unit)
+                unit = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(guid_low, cr_data->id, HIGHGUID_PET), (Creature*)NULL);
+            if (!unit)
+                unit = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(guid_low, cr_data->id, HIGHGUID_VEHICLE), (Creature*)NULL);
+        }
+    }
+
+    return unit;
 }
 
 char* ChatHandler::extractKeyFromLink(char* text, char const* linkType, char** something1)

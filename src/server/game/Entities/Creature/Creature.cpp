@@ -150,6 +150,13 @@ m_defaultMovementType(IDLE_MOTION_TYPE), m_DBTableGuid(0), m_equipmentId(0), m_o
 m_AlreadySearchedAssistance(false), m_regenHealth(true), m_AI_locked(false), m_meleeDamageSchoolMask(SPELL_SCHOOL_MASK_NORMAL),
 m_creatureInfo(NULL), m_creatureData(NULL), m_path_id(0), m_formation(NULL)
 {
+    // WoW Freedom member init [BEGIN]
+    m_creator_id = 0;
+    m_editor_id = 0;
+    m_created = time(NULL);
+    m_modified = time(NULL);
+    // WoW Freedom member init [END]
+
     m_regenTimer = CREATURE_REGEN_INTERVAL;
     m_valuesCount = UNIT_END;
 
@@ -340,9 +347,21 @@ bool Creature::InitEntry(uint32 entry, uint32 /*team*/, const CreatureData* data
     SetSpeed(MOVE_SWIM, 1.0f);      // using 1.0 rate
     SetSpeed(MOVE_FLIGHT, 1.0f);    // using 1.0 rate
 
-    // Will set UNIT_FIELD_BOUNDING_RADIUS and UNIT_FIELD_COMBAT_REACH
-    SetObjectScale(cinfo->scale);
+    if (data)
+    {
+        SetObjectScale(data->size);
+        SetCreator(data->creator_id);
+        SetEditor(data->editor_id);
+        SetCreatedTimestamp(data->created);
+        SetModifiedTimestamp(data->modified);
+    }
+    else
+    {
+        SetObjectScale(cinfo->scale);
+    }
 
+
+    // Will set UNIT_FIELD_BOUNDING_RADIUS and UNIT_FIELD_COMBAT_REACH
     SetFloatValue(UNIT_FIELD_HOVER_HEIGHT, cinfo->HoverHeight);
 
     // checked at loading
@@ -737,7 +756,7 @@ void Creature::Motion_Initialize()
         i_motionMaster.Initialize();
 }
 
-bool Creature::Create(uint32 guidlow, Map* map, uint32 phaseMask, uint32 Entry, uint32 vehId, uint32 team, float x, float y, float z, float ang, const CreatureData* data)
+bool Creature::Create(uint32 guidlow, Map* map, uint32 phaseMask, uint32 Entry, uint32 vehId, uint32 team, float x, float y, float z, float ang, const CreatureData* data, float size, uint32 creator_id, uint32 editor_id, time_t created, time_t modified)
 {
     ASSERT(map);
     SetMap(map);
@@ -1001,6 +1020,11 @@ void Creature::SaveToDB(uint32 mapid, uint8 spawnMask, uint32 phaseMask)
     data.npcflag = npcflag;
     data.unit_flags = unit_flags;
     data.dynamicflags = dynamicflags;
+    data.size = GetFloatValue(OBJECT_FIELD_SCALE);
+    data.creator_id = GetCreator();
+    data.editor_id = GetEditor();
+    data.created = GetCreatedTimestamp();
+    data.modified = GetModifiedTimestamp();
 
     // update in DB
     SQLTransaction trans = WorldDatabase.BeginTransaction();
@@ -1032,6 +1056,11 @@ void Creature::SaveToDB(uint32 mapid, uint8 spawnMask, uint32 phaseMask)
     stmt->setUInt32(index++, npcflag);
     stmt->setUInt32(index++, unit_flags);
     stmt->setUInt32(index++, dynamicflags);
+    stmt->setUInt32(index++, GetFloatValue(OBJECT_FIELD_SCALE));
+    stmt->setUInt32(index++, GetCreator());
+    stmt->setUInt32(index++, GetEditor());
+    stmt->setUInt64(index++, GetCreatedTimestamp());
+    stmt->setUInt64(index++, GetModifiedTimestamp());
     trans->Append(stmt);
 
     WorldDatabase.CommitTransaction(trans);
