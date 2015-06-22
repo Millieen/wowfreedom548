@@ -349,7 +349,10 @@ public:
 
     static bool HandleNpcUnSelectCommand(ChatHandler* handler, char const* /*args*/)
     {
-        handler->GetSession()->GetPlayer()->SetSelectedCreature(0);
+        Player* source = handler->GetSession()->GetPlayer();
+        uint32 guid_low = source->GetSelectedCreature();
+        source->SetSelectedCreature(0);
+        handler->PSendSysMessage(">> NPC selection (GUID: %u) has been reset.", guid_low);
         return true;
     }
 
