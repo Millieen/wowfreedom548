@@ -94,6 +94,9 @@ void WorldDatabaseConnection::DoPrepareStatements()
     // 0: uint8
     PrepareStatement(WORLD_SEL_REQ_XP, "SELECT xp_for_next_level FROM player_xp_for_level WHERE lvl = ?", CONNECTION_SYNCH);
 
+    // blackmarket
+    PrepareStatement(WORLD_SEL_BLACKMARKET_TEMPLATE, "SELECT Id, MarketID, SellerID, ItemEntry, Quantity, MinBid, Duration, Chance FROM blackmarket_template", CONNECTION_SYNCH);
+
     // FREEDOM CMDS
     PrepareStatement(WORLD_SEL_FREEDOM_TELE, "SELECT position_x, position_y, position_z, orientation, map, name, gm_uid FROM freedom_tele WHERE name LIKE ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_FREEDOM_TELE_EXACT, "SELECT position_x, position_y, position_z, orientation, map, name, gm_uid FROM freedom_tele WHERE name = ?", CONNECTION_SYNCH);
@@ -123,5 +126,4 @@ void WorldDatabaseConnection::DoPrepareStatements()
     // CUSTOM ITEM CMDS
     PrepareStatement(WORLD_SEL_IS_PUBLIC_ITEM, "SELECT 1 FROM item_template WHERE entry = ? AND public = 1", CONNECTION_SYNCH);
     PrepareStatement(WORLD_UPD_ITEM_VISIBILITY, "UPDATE item_template SET public = ? WHERE entry = ?", CONNECTION_ASYNC);
-
 }
