@@ -46,6 +46,8 @@ INSERT INTO auth.rbac_permissions (`id`, `name`) VALUES
 -- [.gobject]
 (3000, 'Command: gobject set scale'), (3001, 'Command: gobject phase'), (3002, 'Command: gobject select'),
 (3003, 'Command: gobject disable'), (3004, 'Command: gobject enable'),
+-- [.goto]
+(4000, 'Command: goto local/relative'),
 -- [.npc]
 (5000, 'Command: npc disable'), (5001, 'Command: npc enable'), (5002, 'Command: npc select/unselect'),
 (5003, 'Command: npc set scale'),
@@ -144,6 +146,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 
 -- [CUSTOM COMMANDS]
 (@MODERATOR, 3000), (@MODERATOR, 3001), (@MODERATOR, 3002), -- gobject: scale/phase/select
+(@MODERATOR, 4000), -- goto local
 (@MODERATOR, 5002), (@MODERATOR, 5003), -- npc: select/unselect, [set] scale
 
 -- [191 - Role: [GM2] Gamemaster]

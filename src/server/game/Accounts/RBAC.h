@@ -722,6 +722,7 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_GOBJECT_ENABLE                         = 3004,
 
     // CUSTOM GOTO CMDS         4000 <= X < 5000
+    RBAC_PERM_COMMAND_GO_LOCAL                               = 4000,
 
     // CUSTOM NPC CMDS          5000 <= X < 6000
     RBAC_PERM_COMMAND_NPC_DISABLE                            = 5000,
