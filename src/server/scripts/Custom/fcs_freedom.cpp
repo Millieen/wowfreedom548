@@ -10,26 +10,6 @@
 #include "Opcodes.h"
 #include "MovementStructures.h"
 
-// helper function to replace all occurance strings with another string
-void replaceAll(std::string &str, std::string from, std::string to)
-{
-    std::string::size_type n = 0;
-    while ((n = str.find(from, n)) != std::string::npos)
-    {
-        str.replace(n, from.size(), to);
-        n += to.size();
-    }
-}
-
-bool isSpecialParam(const std::string param)
-{
-    if (param.length() < 3)
-        return false;
-    if (param[0] != '-' || param[1] != '-')
-        return false;
-    return true;
-}
-
 class freedom_commandscript : public CommandScript
 {
 public:

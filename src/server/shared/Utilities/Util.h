@@ -100,6 +100,27 @@ double rand_norm(void);
 */
 double rand_chance(void);
 
+// helper function to replace all occurance strings with another string
+inline void replaceAll(std::string &str, std::string from, std::string to)
+{
+    std::string::size_type n = 0;
+    while ((n = str.find(from, n)) != std::string::npos)
+    {
+        str.replace(n, from.size(), to);
+        n += to.size();
+    }
+}
+
+// check if parameter passed to command was special
+inline bool isSpecialParam(const std::string param)
+{
+    if (param.length() < 3)
+        return false;
+    if (param[0] != '-' || param[1] != '-')
+        return false;
+    return true;
+}
+
 /* Return true if a random roll fits in the specified chance (range 0-100). */
 inline bool roll_chance_f(float chance)
 {
