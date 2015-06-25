@@ -43,42 +43,42 @@ public:
     {
         static ChatCommand lookupPlayerCommandTable[] =
         {
-            { "ip", rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER_IP, true, &HandleLookupPlayerIpCommand, "", NULL },
-            { "account", rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER_ACCOUNT, true, &HandleLookupPlayerAccountCommand, "", NULL },
-            { "email", rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER_EMAIL, true, &HandleLookupPlayerEmailCommand, "", NULL },
+            { "ip",                 rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER_IP,           true, &HandleLookupPlayerIpCommand,         "", NULL },
+            { "account",            rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER_ACCOUNT,      true, &HandleLookupPlayerAccountCommand,    "", NULL },
+            { "email",              rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER_EMAIL,        true, &HandleLookupPlayerEmailCommand,      "", NULL },
             { NULL, 0, false, NULL, "", NULL }
         };
 
         static ChatCommand lookupSpellCommandTable[] =
         {
-            { "id", rbac::RBAC_PERM_COMMAND_LOOKUP_SPELL_ID, true, &HandleLookupSpellIdCommand, "", NULL },
-            { "", rbac::RBAC_PERM_COMMAND_LOOKUP_SPELL, true, &HandleLookupSpellCommand, "", NULL },
+            { "id",                 rbac::RBAC_PERM_COMMAND_LOOKUP_SPELL_ID,            true, &HandleLookupSpellIdCommand,          "", NULL },
+            { "",                   rbac::RBAC_PERM_COMMAND_LOOKUP_SPELL,               true, &HandleLookupSpellCommand,            "", NULL },
             { NULL, 0, false, NULL, "", NULL }
         };
 
         static ChatCommand lookupCommandTable[] =
         {
-            { "area", rbac::RBAC_PERM_COMMAND_LOOKUP_AREA, true, &HandleLookupAreaCommand, "", NULL },
-            { "creature", rbac::RBAC_PERM_COMMAND_LOOKUP_CREATURE, true, &HandleLookupCreatureCommand, "", NULL },
-            { "event", rbac::RBAC_PERM_COMMAND_LOOKUP_EVENT, true, &HandleLookupEventCommand, "", NULL },
-            { "faction", rbac::RBAC_PERM_COMMAND_LOOKUP_FACTION, true, &HandleLookupFactionCommand, "", NULL },
-            { "item", rbac::RBAC_PERM_COMMAND_LOOKUP_ITEM, true, &HandleLookupItemCommand, "", NULL },
-            { "itemset", rbac::RBAC_PERM_COMMAND_LOOKUP_ITEMSET, true, &HandleLookupItemSetCommand, "", NULL },
-            { "object", rbac::RBAC_PERM_COMMAND_LOOKUP_OBJECT, true, &HandleLookupObjectCommand, "", NULL },
-            { "quest", rbac::RBAC_PERM_COMMAND_LOOKUP_QUEST, true, &HandleLookupQuestCommand, "", NULL },
-            { "player", rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER, true, NULL, "", lookupPlayerCommandTable },
-            { "skill", rbac::RBAC_PERM_COMMAND_LOOKUP_SKILL, true, &HandleLookupSkillCommand, "", NULL },
-            { "spell", rbac::RBAC_PERM_COMMAND_LOOKUP_SPELL, true, NULL, "", lookupSpellCommandTable },
-            { "taxinode", rbac::RBAC_PERM_COMMAND_LOOKUP_TAXINODE, true, &HandleLookupTaxiNodeCommand, "", NULL },
-            { "tele", rbac::RBAC_PERM_COMMAND_LOOKUP_TELE, true, &HandleLookupTeleCommand, "", NULL },
-            { "title", rbac::RBAC_PERM_COMMAND_LOOKUP_TITLE, true, &HandleLookupTitleCommand, "", NULL },
-            { "map", rbac::RBAC_PERM_COMMAND_LOOKUP_MAP, true, &HandleLookupMapCommand, "", NULL },
+            { "area",               rbac::RBAC_PERM_COMMAND_LOOKUP_AREA,                true, &HandleLookupAreaCommand,             "", NULL },
+            { "creature",           rbac::RBAC_PERM_COMMAND_LOOKUP_CREATURE,            true, &HandleLookupCreatureCommand,         "", NULL },
+            { "event",              rbac::RBAC_PERM_COMMAND_LOOKUP_EVENT,               true, &HandleLookupEventCommand,            "", NULL },
+            { "faction",            rbac::RBAC_PERM_COMMAND_LOOKUP_FACTION,             true, &HandleLookupFactionCommand,          "", NULL },
+            { "item",               rbac::RBAC_PERM_COMMAND_LOOKUP_ITEM,                true, &HandleLookupItemCommand,             "", NULL },
+            //{ "itemset",            rbac::RBAC_PERM_COMMAND_LOOKUP_ITEMSET,             true, &HandleLookupItemSetCommand,          "", NULL },
+            { "object",             rbac::RBAC_PERM_COMMAND_LOOKUP_OBJECT,              true, &HandleLookupObjectCommand,           "", NULL },
+            { "quest",              rbac::RBAC_PERM_COMMAND_LOOKUP_QUEST,               true, &HandleLookupQuestCommand,            "", NULL },
+            { "skill",              rbac::RBAC_PERM_COMMAND_LOOKUP_SKILL,               true, &HandleLookupSkillCommand,            "", NULL },
+            { "taxinode",           rbac::RBAC_PERM_COMMAND_LOOKUP_TAXINODE,            true, &HandleLookupTaxiNodeCommand,         "", NULL },
+            { "tele",               rbac::RBAC_PERM_COMMAND_LOOKUP_TELE,                true, &HandleLookupTeleCommand,             "", NULL },
+            { "title",              rbac::RBAC_PERM_COMMAND_LOOKUP_TITLE,               true, &HandleLookupTitleCommand,            "", NULL },
+            { "map",                rbac::RBAC_PERM_COMMAND_LOOKUP_MAP,                 true, &HandleLookupMapCommand,              "", NULL },
+            { "player",             rbac::RBAC_PERM_COMMAND_LOOKUP_PLAYER,              true, NULL,                                 "", lookupPlayerCommandTable },
+            { "spell",              rbac::RBAC_PERM_COMMAND_LOOKUP_SPELL,               true, NULL,                                 "", lookupSpellCommandTable },
             { NULL, 0, false, NULL, "", NULL }
         };
 
         static ChatCommand commandTable[] =
         {
-            { "lookup", rbac::RBAC_PERM_COMMAND_LOOKUP, true, NULL, "", lookupCommandTable },
+            { "lookup",             rbac::RBAC_PERM_COMMAND_LOOKUP,                     true, NULL,                                 "", lookupCommandTable },
             { NULL, 0, false, NULL, "", NULL }
         };
         return commandTable;
@@ -360,81 +360,56 @@ public:
     static bool HandleLookupItemCommand(ChatHandler* handler, char const* args)
     {
         if (!*args)
-            return false;
-
-        std::string namePart = args;
-        std::wstring wNamePart;
-
-        // converting string that we try to find to lower case
-        if (!Utf8toWStr(namePart, wNamePart))
-            return false;
-
-        wstrToLower(wNamePart);
-
-        bool found = false;
-        uint32 count = 0;
-        uint32 maxResults = sWorld->getIntConfig(CONFIG_MAX_RESULTS_LOOKUP_COMMANDS);
-
-        // Search in `item_template`
-        ItemTemplateContainer const* its = sObjectMgr->GetItemTemplateStore();
-        for (ItemTemplateContainer::const_iterator itr = its->begin(); itr != its->end(); ++itr)
         {
-            int localeIndex = handler->GetSessionDbLocaleIndex();
-            if (localeIndex >= 0)
-            {
-                uint8 ulocaleIndex = uint8(localeIndex);
-                if (ItemLocale const* il = sObjectMgr->GetItemLocale(itr->second.ItemId))
-                {
-                    if (il->Name.size() > ulocaleIndex && !il->Name[ulocaleIndex].empty())
-                    {
-                        std::string name = il->Name[ulocaleIndex];
-
-                        if (Utf8FitTo(name, wNamePart))
-                        {
-                            if (maxResults && count++ == maxResults)
-                            {
-                                handler->PSendSysMessage(LANG_COMMAND_LOOKUP_MAX_RESULTS, maxResults);
-                                return true;
-                            }
-
-                            if (handler->GetSession())
-                                handler->PSendSysMessage(LANG_ITEM_LIST_CHAT, itr->second.ItemId, itr->second.ItemId, name.c_str());
-                            else
-                                handler->PSendSysMessage(LANG_ITEM_LIST_CONSOLE, itr->second.ItemId, name.c_str());
-
-                            if (!found)
-                                found = true;
-
-                            continue;
-                        }
-                    }
-                }
-            }
-
-            std::string name = itr->second.Name1;
-            if (name.empty())
-                continue;
-
-            if (Utf8FitTo(name, wNamePart))
-            {
-                if (maxResults && count++ == maxResults)
-                {
-                    handler->PSendSysMessage(LANG_COMMAND_LOOKUP_MAX_RESULTS, maxResults);
-                    return true;
-                }
-
-                if (handler->GetSession())
-                    handler->PSendSysMessage(LANG_ITEM_LIST_CHAT, itr->second.ItemId, itr->second.ItemId, name.c_str());
-                else
-                    handler->PSendSysMessage(LANG_ITEM_LIST_CONSOLE, itr->second.ItemId, name.c_str());
-
-                if (!found)
-                    found = true;
-            }
+            handler->PSendSysMessage("You need to supply some search string.");
+            return true;
         }
 
-        if (!found)
-            handler->SendSysMessage(LANG_COMMAND_NOITEMFOUND);
+        std::string item_search_string = args;
+        replaceAll(item_search_string, "%", "\\%"); //escape inputted % wildcards
+        replaceAll(item_search_string, "_", "\\_"); //escape inputted _ wildcards
+        item_search_string += "%";
+
+        // list item: %d - | cffffffff | Hitem:%d : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 | h[%s] | h | r
+        bool show_hidden = handler->HasPermission(rbac::RBAC_PERM_COMMAND_ADDHIDDENITEM) ? true : false;
+
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_ITEMS_BY_STRING);
+        stmt->setString(0, item_search_string);
+        PreparedQueryResult result = WorldDatabase.Query(stmt);
+
+        if (!result)
+        {
+            handler->PSendSysMessage("No results found...");
+            return true;
+        }
+
+        do
+        {
+            Field * fields = result->Fetch();
+            uint32 entry_id = fields[0].GetUInt32();
+            std::string entry_name = fields[1].GetString();
+            uint8 is_public = fields[2].GetUInt8();
+
+            if (is_public)
+            {
+                handler->PSendSysMessage(
+                    "%u - %s|Hitem:%u:0:0:0:0:0:0:0:0|h[%s]|h|r",
+                    entry_id, MSG_COLOR_WHITE, entry_id, entry_name.c_str());
+            } 
+            else if (show_hidden)
+            {
+                handler->PSendSysMessage(
+                    "%u - %s|Hitem:%u:0:0:0:0:0:0:0:0|h[%s]|h|r %s[HIDDEN ITEM]|r",
+                    entry_id, MSG_COLOR_WHITE, entry_id, entry_name.c_str(), MSG_COLOR_RED);
+            }
+        } while (result->NextRow());
+
+        handler->PSendSysMessage("Query contained %u results.%s", uint32(result->GetRowCount()));
+
+        if (!show_hidden)
+        {
+            handler->PSendSysMessage("Some items might of been hidden due to them being disabled by the staff from public use.");
+        }
 
         return true;
     }

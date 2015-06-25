@@ -97,6 +97,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@PLAYER, 50), -- Allow user to check his own email with .account
 
 -- [DEFAULT COMMANDS]
+(@PLAYER, 442), (@PLAYER, 447), -- lookup, lookup item
 (@PLAYER, 488), -- additem
 (@PLAYER, 496), -- commands
 (@PLAYER, 501), -- dismount
@@ -120,7 +121,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@MODERATOR, 377), (@MODERATOR, 378), (@MODERATOR, 379), (@MODERATOR, 380), (@MODERATOR, 381), (@MODERATOR, 382), (@MODERATOR, 383), (@MODERATOR, 384), (@MODERATOR, 385), (@MODERATOR, 386),-- goto
 (@MODERATOR, 387), (@MODERATOR, 388), (@MODERATOR, 389), (@MODERATOR, 390), (@MODERATOR, 391), (@MODERATOR, 392), (@MODERATOR, 393), (@MODERATOR, 394), (@MODERATOR, 395), (@MODERATOR, 396), (@MODERATOR, 397), (@MODERATOR, 398), (@MODERATOR, 399),-- gobject
 (@MODERATOR, 436), (@MODERATOR, 437), (@MODERATOR, 438), (@MODERATOR, 439), (@MODERATOR, 440), (@MODERATOR, 441),-- list
-(@MODERATOR, 442), (@MODERATOR, 443), (@MODERATOR, 444), (@MODERATOR, 445), (@MODERATOR, 446), (@MODERATOR, 447), (@MODERATOR, 448), (@MODERATOR, 449), (@MODERATOR, 450), (@MODERATOR, 451), (@MODERATOR, 452), (@MODERATOR, 453), (@MODERATOR, 454), (@MODERATOR, 455), (@MODERATOR, 456), (@MODERATOR, 457), (@MODERATOR, 458), (@MODERATOR, 459), (@MODERATOR, 460), (@MODERATOR, 461),-- lookup
+(@MODERATOR, 443), (@MODERATOR, 444), (@MODERATOR, 445), (@MODERATOR, 446), (@MODERATOR, 449), (@MODERATOR, 455), (@MODERATOR, 456), (@MODERATOR, 457), (@MODERATOR, 458), (@MODERATOR, 459), (@MODERATOR, 460), (@MODERATOR, 461),-- lookup
 (@MODERATOR, 472), (@MODERATOR, 478), -- group, group summon
 (@MODERATOR, 490), -- appear
 (@MODERATOR, 491), -- aura
@@ -173,6 +174,8 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@GM, 417), (@GM, 418), (@GM, 419), (@GM, 420), (@GM, 421), (@GM, 422), (@GM, 423), (@GM, 424), (@GM, 425), (@GM, 426), (@GM, 427), (@GM, 428), -- learn
 (@GM, 429), -- unlearn
 -- lfg (430 - 435) skipped, not useful
+(@GM, 451), (@GM, 452), (@GM, 453), (@GM, 454), -- lookup player
+(@GM, 448), -- lookup itemset
 (@GM, 462), (@GM, 466), (@GM, 467), (@GM, 468), (@GM, 469), (@GM, 470), (@GM, 471), -- announce, gmannounce, gmnameannounce, gmnotify, nameannounce, whispers
 (@GM, 463), (@GM, 464), (@GM, 465), -- channel
 (@GM, 473), (@GM, 474), (@GM, 475), (@GM, 476), (@GM, 477), -- group

@@ -125,5 +125,6 @@ void WorldDatabaseConnection::DoPrepareStatements()
 
     // CUSTOM ITEM CMDS
     PrepareStatement(WORLD_SEL_IS_PUBLIC_ITEM, "SELECT 1 FROM item_template WHERE entry = ? AND public = 1", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_SEL_ITEMS_BY_STRING, "SELECT entry, name, public FROM item_template WHERE name LIKE ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_UPD_ITEM_VISIBILITY, "UPDATE item_template SET public = ? WHERE entry = ?", CONNECTION_ASYNC);
 }
