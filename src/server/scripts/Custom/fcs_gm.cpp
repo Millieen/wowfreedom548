@@ -21,22 +21,184 @@ public:
 
     ChatCommand* GetCommands() const OVERRIDE
     {
+        static ChatCommand demoteToCommandTable[] =
+        {
+            { "player",     rbac::RBAC_PERM_COMMAND_PROMOTION_DEMOTION,     false, &HandleDemoteToPlayer,                           "", NULL },
+            { NULL, 0, false, NULL, "", NULL }
+        };
+        static ChatCommand promoteToCommandTable[] =
+        {
+            { "moderator",  rbac::RBAC_PERM_COMMAND_PROMOTION_DEMOTION,     false, &HandlePromoteToModerator,                       "", NULL },
+            { NULL, 0, false, NULL, "", NULL }
+        };
         static ChatCommand gmCommandTable[] =
         {
-            { "chat", rbac::RBAC_PERM_COMMAND_GM_CHAT, false, &HandleGMChatCommand, "", NULL },
-            { "fly", rbac::RBAC_PERM_COMMAND_GM_FLY, false, &HandleGMFlyCommand, "", NULL },
-            { "ingame", rbac::RBAC_PERM_COMMAND_GM_INGAME, true, &HandleGMListIngameCommand, "", NULL },
-            { "list", rbac::RBAC_PERM_COMMAND_GM_LIST, true, &HandleGMListFullCommand, "", NULL },
-            { "visible", rbac::RBAC_PERM_COMMAND_GM_VISIBLE, false, &HandleGMVisibleCommand, "", NULL },
-            { "", rbac::RBAC_PERM_COMMAND_GM, false, &HandleGMCommand, "", NULL },
+            { "chat",       rbac::RBAC_PERM_COMMAND_GM_CHAT,                false, &HandleGMChatCommand,                            "", NULL },
+            { "fly",        rbac::RBAC_PERM_COMMAND_GM_FLY,                 false, &HandleGMFlyCommand,                             "", NULL },
+            { "ingame",     rbac::RBAC_PERM_COMMAND_GM_INGAME,              true,  &HandleGMListIngameCommand,                      "", NULL },
+            { "list",       rbac::RBAC_PERM_COMMAND_GM_LIST,                true,  &HandleGMListFullCommand,                        "", NULL },
+            { "visible",    rbac::RBAC_PERM_COMMAND_GM_VISIBLE,             false, &HandleGMVisibleCommand,                         "", NULL },
+            { "",           rbac::RBAC_PERM_COMMAND_GM,                     false, &HandleGMCommand,                                "", NULL },
             { NULL, 0, false, NULL, "", NULL }
         };
         static ChatCommand commandTable[] =
         {
-            { "gm", rbac::RBAC_PERM_COMMAND_GM, false, NULL, "", gmCommandTable },
+            { "gm",         rbac::RBAC_PERM_COMMAND_GM,                     false, NULL,                                            "", gmCommandTable },
+            { "promoteto",  rbac::RBAC_PERM_COMMAND_PROMOTION_DEMOTION,     false, NULL,                                            "", promoteToCommandTable },
+            { "demoteto",   rbac::RBAC_PERM_COMMAND_PROMOTION_DEMOTION,     false, NULL,                                            "", demoteToCommandTable },
             { NULL, 0, false, NULL, "", NULL }
         };
         return commandTable;
+    }
+
+    static bool HandleDemoteToPlayer(ChatHandler* handler, char const* args)
+    {
+        Player* source = handler->GetSession()->GetPlayer();
+        Player* target = NULL;
+        uint32 target_account_id = 0;
+        std::string target_account_username = "";
+
+        // get target account through 3 possible means: 
+        // # username (if param is a word); 
+        // # account id (if param is a number); 
+        // # target player (if no param)
+        if (*args)
+        {
+            std::string param = args;
+
+            target_account_id = sAccountMgr->GetId(param);
+
+            if (!target_account_id)
+            {
+                sAccountMgr->GetName(atol(param.c_str()), target_account_username);
+                target_account_id = sAccountMgr->GetId(target_account_username);
+            } 
+            else
+            {
+                sAccountMgr->GetName(target_account_id, target_account_username);
+            }
+        }
+        else
+        {
+            target = handler->getSelectedPlayer();
+            
+            if (target)
+            {
+                PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_BY_GUID);
+                stmt->setUInt32(0, GUID_LOPART(target->GetGUIDLow()));
+                PreparedQueryResult result = CharacterDatabase.Query(stmt);
+
+                if (result)
+                {
+                    target_account_id = result->Fetch()[0].GetUInt32();
+                    sAccountMgr->GetName(target_account_id, target_account_username);
+                }
+            }
+        }
+
+        if (!target_account_id || target_account_username.empty())
+        {
+            handler->PSendSysMessage("Target account does not exist");
+            return true;
+        }
+
+        uint32 target_sec_level = sAccountMgr->GetSecurity(target_account_id);
+        
+        if (target_sec_level > SEC_MODERATOR)
+        {
+            handler->PSendSysMessage("Target account is a GM or higher. Demotion not allowed.");
+            return true;
+        }
+
+        sAccountMgr->UpdateAccountAccess(NULL, target_account_id, SEC_PLAYER, -1);
+
+        // notify source and target (if target is on) about changes
+        if (handler->needReportToTarget(target))
+        {
+            ChatHandler(target->GetSession()).PSendSysMessage(">> Your account has been demoted to %s|Hgmlevel:0|h[PLAYER]|h|r rank by %s.",
+                MSG_COLOR_LIGHTBLUE, handler->GetNameLink().c_str());
+        }
+
+        handler->PSendSysMessage(">> Account %s|Haccount:%u|h[%s]|h|r has been successfully demoted to %s|Hgmlevel:0|h[PLAYER]|h|r rank.",
+            MSG_COLOR_LIGHTBLUE, target_account_id, target_account_username.c_str(), MSG_COLOR_LIGHTBLUE);
+        handler->PSendSysMessage("Hint: You should kick or make him/her fully relog with the account for the changes to take place.");
+
+        return true;
+    }
+
+    static bool HandlePromoteToModerator(ChatHandler* handler, char const* args)
+    {
+        Player* source = handler->GetSession()->GetPlayer();
+        Player* target = NULL;
+        uint32 target_account_id = 0;
+        std::string target_account_username = "";
+
+        // get target account through 3 possible means: 
+        // # username (if param is a word); 
+        // # account id (if param is a number); 
+        // # target player (if no param)
+        if (*args)
+        {
+            std::string param = args;
+
+            target_account_id = sAccountMgr->GetId(param);
+
+            if (!target_account_id)
+            {
+                sAccountMgr->GetName(atol(param.c_str()), target_account_username);
+                target_account_id = sAccountMgr->GetId(target_account_username);
+            }
+            else
+            {
+                sAccountMgr->GetName(target_account_id, target_account_username);
+            }
+        }
+        else
+        {
+            target = handler->getSelectedPlayer();
+
+            if (target)
+            {
+                PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_SEL_ACCOUNT_BY_GUID);
+                stmt->setUInt32(0, GUID_LOPART(target->GetGUIDLow()));
+                PreparedQueryResult result = CharacterDatabase.Query(stmt);
+
+                if (result)
+                {
+                    target_account_id = result->Fetch()[0].GetUInt32();
+                    sAccountMgr->GetName(target_account_id, target_account_username);
+                }
+            }
+        }
+
+        if (!target_account_id || target_account_username.empty())
+        {
+            handler->PSendSysMessage("Target account does not exist");
+            return true;
+        }
+
+        uint32 target_sec_level = sAccountMgr->GetSecurity(target_account_id);
+
+        if (target_sec_level > SEC_MODERATOR)
+        {
+            handler->PSendSysMessage("Target account is a GM or higher. Demotion not allowed.");
+            return true;
+        }
+
+        sAccountMgr->UpdateAccountAccess(NULL, target_account_id, SEC_MODERATOR, -1);
+
+        // notify source and target (if target is on) about changes
+        if (handler->needReportToTarget(target))
+        {
+            ChatHandler(target->GetSession()).PSendSysMessage(">> Your account has been promoted to %s|Hgmlevel:1|h[MODERATOR]|h|r rank by %s.",
+                MSG_COLOR_LIGHTBLUE, handler->GetNameLink().c_str());
+        }
+
+        handler->PSendSysMessage(">> Account %s|Haccount:%u|h[%s]|h|r has been successfully promoted to %s|Hgmlevel:1|h[MODERATOR]|h|r rank.",
+            MSG_COLOR_LIGHTBLUE, target_account_id, target_account_username.c_str(), MSG_COLOR_LIGHTBLUE);
+        handler->PSendSysMessage("Hint: You should kick or make him/her fully relog with the account for the changes to take place.");
+
+        return true;
     }
 
     // Enables or disables hiding of the staff badge

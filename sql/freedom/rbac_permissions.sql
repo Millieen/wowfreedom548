@@ -55,7 +55,8 @@ INSERT INTO auth.rbac_permissions (`id`, `name`) VALUES
 (8000, 'Allow adding hidden items through additem command'),
 (8001, 'Command: hideitem'),
 (8002, 'Command: unhideitem'),
-(8003, 'Allow showing private information when using certain commands')
+(8003, 'Allow showing private information when using certain commands'),
+(8004, 'Command: promoteto/demoteto')
 ;
 
 -- [RECREATION: LINKED PERMS]
@@ -202,6 +203,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@GM, 3003), (@GM, 3004), -- gobject disable/enable
 (@GM, 5000), (@GM, 5001), -- npc disable/enable
 (@GM, 8001), (@GM, 8002), -- hide/unhide items for the public (GMLVL 0 and 1 / Players & Moderators)
+(@GM, 8004), -- promoteto & demoteto commands
 
 -- [190 - Role: [GM3] Administrator]
 (@ADMIN, @GM),
