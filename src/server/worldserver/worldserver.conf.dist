@@ -36,6 +36,30 @@
 ###################################################################################################
 
 ###################################################################################################
+# FREEDOM CONFIG
+#
+#    Freedom MODIFY variables
+#        Description: Values used to allow maximum and minimum value to use through .freedom
+#                     modify commands such as .freedom fly $speed.
+#        Important:   Scale should not be over 30 and speed should not be over 50. All of them
+#                     should not go below 0.1. MaxSpeed and MinSpeed encompass all speed types.
+#        Default:     Speeds - Min/Max: 0.1/5.0
+#                     Scale  - Min/Max: 0.1/3.0                     
+
+Freedom.Modify.MaxScale        = 3.0
+Freedom.Modify.MaxFly          = 10.0
+Freedom.Modify.MaxSwim         = 10.0
+Freedom.Modify.MaxWalk         = 10.0
+Freedom.Modify.MaxRun          = 10.0
+Freedom.Modify.MaxSpeed        = 10.0
+Freedom.Modify.MinScale        = 0.1
+Freedom.Modify.MinFly          = 0.1
+Freedom.Modify.MinSwim         = 0.1
+Freedom.Modify.MinWalk         = 0.1
+Freedom.Modify.MinRun          = 0.1
+Freedom.Modify.MinSpeed        = 0.1
+
+###################################################################################################
 # EXAMPLE CONFIG
 #
 #    Variable
