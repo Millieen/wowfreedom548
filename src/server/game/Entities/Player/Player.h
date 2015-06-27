@@ -1776,6 +1776,7 @@ class Player : public Unit, public GridObject<Player>
         void removeSpell(uint32 spell_id, bool disabled = false, bool learn_low_rank = true);
         void resetSpells(bool myClassOnly = false);
         void LearnCustomSpells();
+        void LearnCustomSkills();
         void LearnDefaultSkills();
         void LearnDefaultSkill(SkillRaceClassInfoEntry const* rcInfo);
         void learnQuestRewardedSpells();

@@ -1142,6 +1142,7 @@ bool Player::Create(uint32 guidlow, CharacterCreateInfo* createInfo)
 
     // original spells
     LearnDefaultSkills();
+    LearnCustomSkills();
     LearnCustomSpells();
 
     // original action bar
@@ -18079,6 +18080,7 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
     // after spell and quest load
     InitTalentForLevel();
     LearnDefaultSkills();
+    LearnCustomSkills();
     LearnCustomSpells();
 
     // must be before inventory (some items required reputation check)
@@ -24104,8 +24106,35 @@ void Player::resetSpells(bool myClassOnly)
             removeSpell(iter->first, false, false);           // only iter->first can be accessed, object by iter->second can be deleted already
 
     LearnDefaultSkills();
+    LearnCustomSkills();
     LearnCustomSpells();
     learnQuestRewardedSpells();
+}
+
+void Player::LearnCustomSkills()
+{
+    QueryResult result = WorldDatabase.PQuery("SELECT classMask, raceMask, skill, rank FROM playercreateinfo_skill_custom");
+    if (!result)
+    {
+        TC_LOG_ERROR("sql.sql", "[AZE_ERR] DB table `playercreateinfo_skill_custom` is empty.");
+    }
+    else
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            int32 classmask = fields[0].GetInt32();
+            int32 racemask = fields[1].GetInt32();
+            uint16 skill_id = fields[2].GetUInt16();
+            uint16 rank = fields[3].GetUInt16();
+
+            if ((classmask & getClassMask() || classmask == 0) &&
+                (racemask & getRaceMask() || racemask == 0)) 
+            {
+                SetSkill(skill_id, GetSkillValue(skill_id) ? GetSkillStep(skill_id) : 1, rank, rank);
+            }
+        } while (result->NextRow());
+    }
 }
 
 void Player::LearnCustomSpells()
@@ -26156,6 +26185,7 @@ void Player::_LoadSkills(PreparedQueryResult result)
             uint16 value    = fields[1].GetUInt16();
             uint16 max      = fields[2].GetUInt16();
 
+            /* Removed strict race/class skill enforcement feature, not needed for sandbox/rp server
             SkillRaceClassInfoEntry const* rcEntry = GetSkillRaceClassInfo(skill, getRace(), getClass());
             if (!rcEntry)
             {
@@ -26194,6 +26224,7 @@ void Player::_LoadSkills(PreparedQueryResult result)
 
                 continue;
             }
+            */
 
             uint16 field = count / 2;
             uint8 offset = count & 1;
@@ -26201,7 +26232,9 @@ void Player::_LoadSkills(PreparedQueryResult result)
             SetUInt16Value(PLAYER_FIELD_SKILL_LINEIDS + field, offset, skill);
             uint16 step = 0;
 
-            SkillLineEntry const* skillLine = sSkillLineStore.LookupEntry(rcEntry->SkillID);
+            // Removed strict race/class skill enforcement feature, not needed for sandbox/rp server
+            // DEFAULT: SkillLineEntry const* skillLine = sSkillLineStore.LookupEntry(rcEntry->SkillId); 
+            SkillLineEntry const* skillLine = sSkillLineStore.LookupEntry(skill); 
             if (skillLine)
             {
                 if (skillLine->CategoryID == SKILL_CATEGORY_SECONDARY)
