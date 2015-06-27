@@ -100,6 +100,14 @@ SELECT 									 					 `racemask`, `classmask`, `Spell`, `Note`
 FROM			test.playercreateinfo_spell_custom;								  
 COMMIT;
 
+-- test.playercreateinfo_skills => world.playercreateinfo_skill_custom
+START TRANSACTION;
+DELETE FROM world.playercreateinfo_skill_custom;
+INSERT INTO world.playercreateinfo_skill_custom (`racemask`, `classmask`, `Spell`, `Note`)
+SELECT 									 					 `racemask`, `classmask`, `Spell`, `Note`
+FROM			test.playercreateinfo_skills;								  
+COMMIT;
+
 -- test.freedom_morphs => world.freedom_morph
 START TRANSACTION;
 DELETE FROM world.freedom_morph;
