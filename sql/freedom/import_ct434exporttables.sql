@@ -103,8 +103,8 @@ COMMIT;
 -- test.playercreateinfo_skills => world.playercreateinfo_skill_custom
 START TRANSACTION;
 DELETE FROM world.playercreateinfo_skill_custom;
-INSERT INTO world.playercreateinfo_skill_custom (`racemask`, `classmask`, `Spell`, `Note`)
-SELECT 									 					 `racemask`, `classmask`, `Spell`, `Note`
+INSERT INTO world.playercreateinfo_skill_custom (`racemask`, `classmask`, `skill`, `rank`, `comment`)
+SELECT 									 					 `racemask`, `classmask`, `skill`, `rank`, `comment`
 FROM			test.playercreateinfo_skills;								  
 COMMIT;
 
