@@ -4,8 +4,8 @@ START TRANSACTION;
 UPDATE item_template a SET 
 	a.BuyPrice = 0, -- items do not cost anything
 	a.SellPrice = 1, -- items can be sold for 1 copper (if 0, then can't quick-sell them to quickly get rid of the items)
-	a.AllowableClass = -1, -- all classes can use any items
-	a.AllowableRace = -1, -- all races can use any items
+	a.AllowableClass = ~0 >> 33, -- all classes can use any items
+	a.AllowableRace = ~0 >> 33, -- all races can use any items
 	a.RequiredSkill = 0,
 	a.RequiredSkillRank = 0,
 	a.requiredspell = 0,
