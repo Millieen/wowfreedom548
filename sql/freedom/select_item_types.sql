@@ -209,7 +209,40 @@ SELECT
 			END
 		ELSE CONCAT('UNKNOWN CLASSIFIER: ', class)
 	END AS `ITEM SUBCLASS`,
+	
+	CASE inventorytype
+		WHEN 0 THEN 'Non-equipable'
+		WHEN 1 THEN 'Head'
+		WHEN 2 THEN 'Neck'
+		WHEN 3 THEN 'Shoulder'
+		WHEN 4 THEN 'Shirt'
+		WHEN 5 THEN 'Chest'
+		WHEN 6 THEN 'Waist'
+		WHEN 7 THEN 'Legs'
+		WHEN 8 THEN 'Feet'
+		WHEN 9 THEN 'Wrists'
+		WHEN 10 THEN 'Hands'
+		WHEN 11 THEN 'Finger'
+		WHEN 12 THEN 'Trinket'
+		WHEN 13 THEN 'Weapon'
+		WHEN 14 THEN 'Shield'
+		WHEN 15 THEN 'Ranged (Bows)'
+		WHEN 16 THEN 'Back'
+		WHEN 17 THEN 'Two-Hand'
+		WHEN 18 THEN 'Bag'
+		WHEN 19 THEN 'Tabard'
+		WHEN 20 THEN 'Robe'
+		WHEN 21 THEN 'Main Hand'
+		WHEN 22 THEN 'Off-Hand'
+		WHEN 23 THEN 'Holdable (Tome)'
+		WHEN 24 THEN 'Ammo'
+		WHEN 25 THEN 'Thrown'
+		WHEN 26 THEN 'Ranged right (Wands, Guns)'
+		WHEN 27 THEN 'Quiver'
+		WHEN 28 THEN 'Relic'
+		ELSE CONCAT('UNKNOWN INVENTORY TYPE: ', inventorytype)
+	END AS `INVENTORY TYPE`,
 
 	COUNT(*) `ITEM COUNT`
 FROM world.item_template
-GROUP BY class, subclass;
+GROUP BY class, subclass, inventorytype;
