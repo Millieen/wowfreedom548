@@ -365,16 +365,17 @@ public:
             return true;
         }
 
-        std::string item_search_string = args;
+        std::string item_search_string = const_cast<char*>(args);
         replaceAll(item_search_string, "%", "\\%"); //escape inputted % wildcards
         replaceAll(item_search_string, "_", "\\_"); //escape inputted _ wildcards
-        item_search_string += "%";
+
+        std::string item_search_string_refined = "%" + item_search_string + "%";
 
         // list item: %d - | cffffffff | Hitem:%d : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 | h[%s] | h | r
         bool show_hidden = handler->HasPermission(rbac::RBAC_PERM_COMMAND_ADDHIDDENITEM) ? true : false;
 
         PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_ITEMS_BY_STRING);
-        stmt->setString(0, item_search_string);
+        stmt->setString(0, item_search_string_refined);
         PreparedQueryResult result = WorldDatabase.Query(stmt);
 
         if (!result)
