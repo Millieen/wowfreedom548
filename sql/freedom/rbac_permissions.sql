@@ -143,7 +143,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@MODERATOR, 543), -- demorph
 (@MODERATOR, 544), (@MODERATOR, 547), (@MODERATOR, 555), (@MODERATOR, 556), (@MODERATOR, 560), (@MODERATOR, 568), (@MODERATOR, 562), (@MODERATOR, 564), (@MODERATOR, 565), (@MODERATOR, 566), -- modify, modify drunk, modify mount, modify phase, modify scale, modify standstate, modify all, modify fly, modify run, modify swim
 (@MODERATOR, 570), (@MODERATOR, 571), (@MODERATOR, 576), (@MODERATOR, 578), (@MODERATOR, 579), (@MODERATOR, 580), (@MODERATOR, 583), (@MODERATOR, 585), (@MODERATOR, 587), (@MODERATOR, 589), (@MODERATOR, 593), (@MODERATOR, 594), (@MODERATOR, 595), (@MODERATOR, 596), (@MODERATOR, 597), (@MODERATOR, 598), (@MODERATOR, 599), (@MODERATOR, 600), (@MODERATOR,601), -- npc
-(@MODERATOR, 737), (@MODERATOR, 740), -- tele, tele name
+(@MODERATOR, 737), (@MODERATOR, 738), (@MODERATOR, 739), (@MODERATOR, 740), -- tele
 (@MODERATOR, 767), (@MODERATOR, 768), (@MODERATOR, 769), (@MODERATOR, 770), (@MODERATOR, 771), (@MODERATOR, 772), (@MODERATOR, 773), (@MODERATOR, 774), -- wp
 
 -- [CUSTOM COMMANDS]
