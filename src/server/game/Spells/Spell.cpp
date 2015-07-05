@@ -925,7 +925,8 @@ void Spell::SelectEffectImplicitTargets(SpellEffIndex effIndex, SpellImplicitTar
             TC_LOG_DEBUG("spells", "SPELL: target type %u, found in spellID %u, effect %u is not implemented yet!", m_spellInfo->Id, effIndex, targetType.GetTarget());
             break;
         default:
-            ASSERT(false && "Spell::SelectEffectImplicitTargets: received not implemented select target category");
+            TC_LOG_ERROR("spells", "Spell::SelectEffectImplicitTargets: received not implemented select target category (spellId: %u) (spellSelectionCategory: %u)", m_spellInfo->Id, targetType.GetSelectionCategory());
+            //ASSERT(false && "Spell::SelectEffectImplicitTargets: received not implemented select target category");
             break;
     }
 }
