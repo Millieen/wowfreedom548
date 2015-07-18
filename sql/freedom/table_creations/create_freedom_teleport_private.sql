@@ -1,5 +1,5 @@
 USE world;
-DROP TABLE IF EXISTS `freedom_morph`;
+DROP TABLE IF EXISTS `freedom_tele_private`;
 CREATE TABLE `freedom_tele_private` (
 	`id` MEDIUMINT(8) UNSIGNED NOT NULL AUTO_INCREMENT,
 	`position_x` FLOAT NOT NULL DEFAULT '0',
