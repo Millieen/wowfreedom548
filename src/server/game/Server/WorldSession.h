@@ -558,6 +558,7 @@ class WorldSession
         void HandleGroupChangeSubGroupOpcode(WorldPacket& recvData);
         void HandleGroupSwapSubGroupOpcode(WorldPacket& recvData);
         void HandleGroupAssistantLeaderOpcode(WorldPacket& recvData);
+        void HandleGroupEveryoneIsAssistantOpcode(WorldPacket& recvData);
         void HandlePartyAssignmentOpcode(WorldPacket& recvData);
 
         void HandlePetitionBuyOpcode(WorldPacket& recvData);
@@ -819,7 +820,6 @@ class WorldSession
         void HandleSetDungeonDifficultyOpcode(WorldPacket& recvData);
         void HandleSetRaidDifficultyOpcode(WorldPacket& recvData);
         void HandleMoveSetCanFlyAckOpcode(WorldPacket& recvData);
-        void HandleSetTitleOpcode(WorldPacket& recvData);
         void HandleRealmSplitOpcode(WorldPacket& recvData);
         void HandleTimeSyncResp(WorldPacket& recvData);
         void HandleWhoisOpcode(WorldPacket& recvData);
@@ -990,6 +990,7 @@ class WorldSession
         void HandleObjectUpdateFailedOpcode(WorldPacket& recvPacket);
         void HandleSelectFactionOpcode(WorldPacket& recvPacket);
         void HandleRequestCategoryCooldowns(WorldPacket& recvPacket);
+        void HandleRequestCemeteryList(WorldPacket& recvPacket);
 
         void SendBroadcastText(uint32 entry);
 
@@ -1006,6 +1007,11 @@ class WorldSession
         void HandleBattlePetSetBattleSlot(WorldPacket& recvData);
         void HandleBattlePetSetFlags(WorldPacket& recvData);
         void HandleBattlePetSummonCompanion(WorldPacket& recvData);
+
+        // Titles
+        void HandleSetTitleOpcode(WorldPacket& recvData);
+        void SendTitleEarned(uint32 TitleIndex);
+        void SendTitleLost(uint32 TitleIndex);
 
     private:
         void InitializeQueryCallbackParameters();

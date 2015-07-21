@@ -670,6 +670,41 @@ void WorldSession::HandleReturnToGraveyard(WorldPacket& /*recvPacket*/)
     GetPlayer()->RepopAtGraveyard();
 }
 
+void WorldSession::HandleRequestCemeteryList(WorldPacket& /*recvPacket*/)
+{
+    uint32 zoneId = _player->GetZoneId();
+    uint32 team = _player->GetTeam();
+
+    std::vector<uint32> GraveyardIds;
+
+    GraveYardContainer::const_iterator it;
+    std::pair<GraveYardContainer::const_iterator, GraveYardContainer::const_iterator> range;
+    range = sObjectMgr->GraveYardStore.equal_range(zoneId);
+        
+    for (it = range.first; it != range.second && GraveyardIds.size() < 16; ++it) // client max
+    {
+        if (it->second.team == 0 || it->second.team == team)
+            GraveyardIds.push_back(it->first);
+    }
+
+    if (GraveyardIds.empty())
+    {
+        TC_LOG_DEBUG("network", "No graveyards found for zone %u for %u (team %u) in CMSG_REQUEST_CEMETERY_LIST", zoneId, m_GUIDLow, team);
+        return;
+    }
+
+    bool IsGossipTriggered = false;
+    WorldPacket data(SMSG_REQUEST_CEMETERY_LIST_RESPONSE, 4 + 4 * GraveyardIds.size());
+
+    data.WriteBits(GraveyardIds.size(), 22);
+    data << IsGossipTriggered;
+
+    for (uint32 i = 0; i < GraveyardIds.size(); ++i)
+        data << uint32(GraveyardIds[i]);
+
+    SendPacket(&data);
+}
+
 void WorldSession::HandleSetSelectionOpcode(WorldPacket& recvData)
 {
     ObjectGuid guid;
@@ -1758,6 +1793,20 @@ void WorldSession::HandleSetTitleOpcode(WorldPacket& recvData)
     GetPlayer()->SetUInt32Value(PLAYER_FIELD_PLAYER_TITLE, title);
 }
 
+void WorldSession::SendTitleEarned(uint32 TitleIndex)
+{
+    WorldPacket data(SMSG_TITLE_EARNED, 4);
+    data << uint32(TitleIndex);
+    SendPacket(&data);
+}
+
+void WorldSession::SendTitleLost(uint32 TitleIndex)
+{
+    WorldPacket data(SMSG_TITLE_LOST, 4);
+    data << uint32(TitleIndex);
+    SendPacket(&data);
+}
+
 void WorldSession::HandleTimeSyncResp(WorldPacket& recvData)
 {
     TC_LOG_DEBUG("network", "CMSG_TIME_SYNC_RESP");
@@ -2459,44 +2508,44 @@ void WorldSession::SendLoadCUFProfiles()
         if (!profile)
             continue;
 
+        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_SPEC_1]);
+        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_3_PLAYERS]);
         data.WriteBit(profile->BoolOptions[CUF_UNK_157]);
         data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_10_PLAYERS]);
-        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_5_PLAYERS]);
-        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_25_PLAYERS]);
-        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_HEAL_PREDICTION]);
-        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_PVE]);
-        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_HORIZONTAL_GROUPS]);
         data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_40_PLAYERS]);
-        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_3_PLAYERS]);
-        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_AGGRO_HIGHLIGHT]);
         data.WriteBit(profile->BoolOptions[CUF_DISPLAY_BORDER]);
-        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_2_PLAYERS]);
-        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_NON_BOSS_DEBUFFS]);
-        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_MAIN_TANK_AND_ASSIST]);
-        data.WriteBit(profile->BoolOptions[CUF_UNK_156]);
-        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_SPEC_2]);
         data.WriteBit(profile->BoolOptions[CUF_USE_CLASS_COLORS]);
-        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_POWER_BAR]);
-        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_SPEC_1]);
-        data.WriteBits(profile->ProfileName.size(), 8);
-        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_ONLY_DISPELLABLE_DEBUFFS]);
         data.WriteBit(profile->BoolOptions[CUF_KEEP_GROUPS_TOGETHER]);
-        data.WriteBit(profile->BoolOptions[CUF_UNK_145]);
-        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_15_PLAYERS]);
+        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_POWER_BAR]);
+        data.WriteBits(profile->ProfileName.size(), 8);
         data.WriteBit(profile->BoolOptions[CUF_DISPLAY_PETS]);
+        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_AGGRO_HIGHLIGHT]);
+        data.WriteBit(profile->BoolOptions[CUF_UNK_145]);
         data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_PVP]);
+        data.WriteBit(profile->BoolOptions[CUF_UNK_156]);
+        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_MAIN_TANK_AND_ASSIST]);
+        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_NON_BOSS_DEBUFFS]);
+        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_HORIZONTAL_GROUPS]);
+        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_SPEC_2]);
+        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_HEAL_PREDICTION]);
+        data.WriteBit(profile->BoolOptions[CUF_DISPLAY_ONLY_DISPELLABLE_DEBUFFS]);
+        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_25_PLAYERS]);
+        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_PVE]);
+        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_5_PLAYERS]);
+        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_15_PLAYERS]);
+        data.WriteBit(profile->BoolOptions[CUF_AUTO_ACTIVATE_2_PLAYERS]);
 
-        byteBuffer << uint16(profile->Unk154);
-        byteBuffer << uint16(profile->FrameHeight);
         byteBuffer << uint16(profile->Unk152);
-        byteBuffer << uint8(profile->Unk147);
-        byteBuffer << uint16(profile->Unk150);
-        byteBuffer << uint8(profile->Unk146);
+        byteBuffer << uint16(profile->Unk154);
         byteBuffer << uint8(profile->HealthText);
+        byteBuffer.WriteString(profile->ProfileName);
+        byteBuffer << uint8(profile->Unk147);
+        byteBuffer << uint8(profile->Unk146);
+        byteBuffer << uint16(profile->FrameHeight);
+        byteBuffer << uint8(profile->Unk148);
         byteBuffer << uint8(profile->SortBy);
         byteBuffer << uint16(profile->FrameWidth);
-        byteBuffer << uint8(profile->Unk148);
-        byteBuffer.WriteString(profile->ProfileName);
+        byteBuffer << uint16(profile->Unk150);
     }
 
     data.FlushBits();
