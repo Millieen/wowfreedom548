@@ -740,6 +740,7 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_UNHIDEITEM                             = 8002,
     RBAC_PERM_SPECIAL_SHOW_PRIVATE_INFO                      = 8003,
     RBAC_PERM_COMMAND_PROMOTION_DEMOTION                     = 8004,
+    RBAC_PERM_COMMAND_FREEDOM_RAID                           = 8005,
 
     RBAC_PERM_MAX
 };

@@ -56,7 +56,8 @@ INSERT INTO auth.rbac_permissions (`id`, `name`) VALUES
 (8001, 'Command: hideitem'),
 (8002, 'Command: unhideitem'),
 (8003, 'Allow showing private information when using certain commands'),
-(8004, 'Command: promoteto/demoteto')
+(8004, 'Command: promoteto/demoteto'),
+(8005, 'Command: raid/party')
 ;
 
 -- [RECREATION: LINKED PERMS]
@@ -107,6 +108,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 
 -- [CUSTOM COMMANDS]
 (@PLAYER, 1000), (@PLAYER, 1001), (@PLAYER, 1002), (@PLAYER, 1003), (@PLAYER, 1004), (@PLAYER, 1005), (@PLAYER, 1006), (@PLAYER, 1007), (@PLAYER, 1008), (@PLAYER, 1009), (@PLAYER, 1010), (@PLAYER, 1011), (@PLAYER, 1012), (@PLAYER, 1013), (@PLAYER, 1014), (@PLAYER, 1015), (@PLAYER, 1016), (@PLAYER, 1017), (@PLAYER, 1018), (@PLAYER, 1019), (@PLAYER, 1022), (@PLAYER, 1023), (@PLAYER, 1024), (@PLAYER, 1025), (@PLAYER, 1027), -- freedom
+(@PLAYER, 8005), -- raid/party
 
 -- [198 - Role: [GM1] Moderator, ST]
 (@MODERATOR, @PLAYER),
