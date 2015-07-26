@@ -236,6 +236,7 @@ class WorldSession
         void SendSetPhaseShift(std::set<uint32> const& phaseIds, std::set<uint32> const& terrainswaps, std::set<uint32> const& worldAreas);
         void SendQueryTimeResponse();
         void SendGroupInviteNotification(const std::string& inviterName, bool inGroup);
+        void SendRolePollInform(uint8 Index);
 
         void SendAuthResponse(uint8 code, bool queued, uint32 queuePos = 0);
         void SendClientCacheVersion(uint32 version);
@@ -352,7 +353,7 @@ class WorldSession
 
         //Item Enchantment
         void SendEnchantmentLog(uint64 target, uint64 caster, uint32 itemId, uint32 enchantId);
-        void SendItemEnchantTimeUpdate(uint64 Playerguid, uint64 Itemguid, uint32 slot, uint32 Duration);
+        void SendItemEnchantTimeUpdate(ObjectGuid Playerguid, ObjectGuid Itemguid, uint32 slot, uint32 Duration);
 
         //Taxi
         void SendTaxiStatus(uint64 guid);
@@ -560,6 +561,7 @@ class WorldSession
         void HandleGroupAssistantLeaderOpcode(WorldPacket& recvData);
         void HandleGroupEveryoneIsAssistantOpcode(WorldPacket& recvData);
         void HandlePartyAssignmentOpcode(WorldPacket& recvData);
+        void HandleGroupInitiatePollRole(WorldPacket& recvData);
 
         void HandlePetitionBuyOpcode(WorldPacket& recvData);
         void HandlePetitionShowSignOpcode(WorldPacket& recvData);
@@ -892,6 +894,7 @@ class WorldSession
 
         void HandleItemRefundInfoRequest(WorldPacket& recvData);
         void HandleItemRefund(WorldPacket& recvData);
+        void SendItemExpirePurchaseRefund(ObjectGuid itemGuid);
 
         void HandleChannelVoiceOnOpcode(WorldPacket& recvData);
         void HandleVoiceSessionEnableOpcode(WorldPacket& recvData);
