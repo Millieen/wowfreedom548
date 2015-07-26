@@ -1460,6 +1460,7 @@ void AddSC_fgobject_commandscript();
 void AddSC_freedom_commandscript();
 void AddSC_flist_commandscript();
 void AddSC_flookup_commandscript();
+void AddSC_fraid_commandscript();
 #endif
 
 void AddCustomScripts()
@@ -1474,5 +1475,6 @@ void AddCustomScripts()
     AddSC_freedom_commandscript();
     AddSC_flist_commandscript();
     AddSC_flookup_commandscript();
+    AddSC_fraid_commandscript()
 #endif
 }
