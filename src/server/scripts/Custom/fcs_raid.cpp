@@ -7,6 +7,8 @@
 #include "Player.h"
 #include "Opcodes.h"
 
+#define DEFAULT_SUBGROUP "MAIN"
+
 class fraid_commandscript : public CommandScript
 {
 public:
@@ -16,8 +18,6 @@ public:
     {
         static ChatCommand partyCommandTable[] =
         {
-            { "create",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandlePartyCreateCommand,           "", NULL },
-            { "disband",            rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandlePartyDisbandCommand,          "", NULL },
             { "say",                rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandlePartySayCommand,              "", NULL },
             { "warning",            rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandlePartyWarningCommand,          "", NULL },
             { NULL, 0, false, NULL, "", NULL }
@@ -29,9 +29,12 @@ public:
             { "disband",            rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidDisbandCommand,           "", NULL },
             { "invite",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidInviteCommand,            "", NULL },
             { "kick",               rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidKickCommand,              "", NULL },
+            { "move",               rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidMoveCommand,              "", NULL },
             { "accept",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidAcceptCommand,            "", NULL },
-            { "assist",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidAssistCommand,            "", NULL },
+            { "promote",            rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidPromoteCommand,           "", NULL },
+            { "demote",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidDemoteCommand,            "", NULL },
             { "leader",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidLeaderCommand,            "", NULL },
+            { "list",               rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidListCommand,              "", NULL },
             { "say",                rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidSayCommand,               "", NULL },
             { "warning",            rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidWarningCommand,           "", NULL },
             { NULL, 0, false, NULL, "", NULL }
@@ -51,11 +54,58 @@ public:
 
     static bool HandleRaidCreateCommand(ChatHandler* handler, char const* args)
     {
+        Player* source = handler->GetSession()->GetPlayer();
+        uint32 source_guid = source->GetGUIDLow();
+        PreparedStatement* stmt;
+        PreparedQueryResult result;
+
+        // check if already in raid
+        stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_BY_MEMBER);
+        stmt->setUInt32(0, source_guid);
+        result = WorldDatabase.Query(stmt);
+
+        if (result)
+        {
+            handler->PSendSysMessage("> You are already in a raid. To create a new one, you need to leave/disband your current raid group.");
+            return true;
+        }
+
+        // create new raid entry and set cmd executor as leader
+        stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_RAID);
+        stmt->setUInt32(0, source_guid);
+        stmt->setUInt32(1, source_guid);
+        stmt->setString(2, DEFAULT_SUBGROUP);
+        stmt->setUInt8(3, 1); // 1: assistant perms, 0: no assistant perms
+        WorldDatabase.Execute(stmt);
+
+        handler->PSendSysMessage("> Raid group successfully created.");
         return true;
     }
 
     static bool HandleRaidDisbandCommand(ChatHandler* handler, char const* args)
     {
+        Player* source = handler->GetSession()->GetPlayer();
+        uint32 source_guid = source->GetGUIDLow();
+        PreparedStatement* stmt;
+        PreparedQueryResult result;
+
+        // check if leader
+        stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_IS_LEADER);
+        stmt->setUInt32(0, source_guid);
+        result = WorldDatabase.Query(stmt);
+
+        if (!result)
+        {
+            handler->PSendSysMessage("> You must be in a raid group AND you need to be the leader of that raid group.");
+            return true;
+        }
+
+        // delete raid group entries
+        stmt = WorldDatabase.GetPreparedStatement(WORLD_DEL_RAID_ALL);
+        stmt->setUInt32(0, source_guid);
+        WorldDatabase.Execute(stmt);
+
+        handler->PSendSysMessage("> Raid group successfully disbanded.");
         return true;
     }
 
@@ -69,17 +119,32 @@ public:
         return true;
     }
 
+    static bool HandleRaidMoveCommand(ChatHandler* handler, char const* args)
+    {
+        return true;
+    }
+
     static bool HandleRaidAcceptCommand(ChatHandler* handler, char const* args)
     {
         return true;
     }
 
-    static bool HandleRaidAssistCommand(ChatHandler* handler, char const* args)
+    static bool HandleRaidPromoteCommand(ChatHandler* handler, char const* args)
+    {
+        return true;
+    }
+
+    static bool HandleRaidDemoteCommand(ChatHandler* handler, char const* args)
     {
         return true;
     }
 
     static bool HandleRaidLeaderCommand(ChatHandler* handler, char const* args)
+    {
+        return true;
+    }
+
+    static bool HandleRaidListCommand(ChatHandler* handler, char const* args)
     {
         return true;
     }
@@ -97,16 +162,6 @@ public:
     #pragma endregion
 
     #pragma region PARTY COMMAND REGION
-
-    static bool HandlePartyCreateCommand(ChatHandler* handler, char const* args)
-    {
-        return true;
-    }
-
-    static bool HandlePartyDisbandCommand(ChatHandler* handler, char const* args)
-    {
-        return true;
-    }
 
     static bool HandlePartySayCommand(ChatHandler* handler, char const* args)
     {
