@@ -2809,10 +2809,10 @@ Guild.SaveInterval = 15
 #
 #    Guild.MaxLevel
 #        Description: Defines max level a guild can reach
-#        Default:     30
+#        Default:     25
 #
 
-Guild.MaxLevel = 30
+Guild.MaxLevel = 25
 
 #
 #    Guild.UndeletableLevel

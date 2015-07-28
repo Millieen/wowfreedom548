@@ -376,31 +376,28 @@ void WorldSession::HandleTrainerBuySpellOpcode(WorldPacket& recvData)
         _player->learnSpell(spellId, false);
 }
 
-void WorldSession::SendTrainerBuyFailed(uint64 guid, uint32 spellId, uint32 reason)
+void WorldSession::SendTrainerBuyFailed(ObjectGuid guid, uint32 spellId, uint32 reason)
 {
-    ObjectGuid Guid = guid;
-    WorldPacket data(SMSG_TRAINER_BUY_FAILED, 16);
+    WorldPacket data(SMSG_TRAINER_BUY_FAILED, 8 + 4 + 4);
+    data.WriteBit(guid[3]);
+    data.WriteBit(guid[0]);
+    data.WriteBit(guid[4]);
+    data.WriteBit(guid[7]);
+    data.WriteBit(guid[6]);
+    data.WriteBit(guid[1]);
+    data.WriteBit(guid[5]);
+    data.WriteBit(guid[2]);
 
-    data.WriteBit(Guid[3]);
-    data.WriteBit(Guid[0]);
-    data.WriteBit(Guid[4]);
-    data.WriteBit(Guid[7]);
-    data.WriteBit(Guid[6]);
-    data.WriteBit(Guid[1]);
-    data.WriteBit(Guid[5]);
-    data.WriteBit(Guid[2]);
-
-    data.WriteByteSeq(Guid[1]);
-    data.WriteByteSeq(Guid[2]);
-    data.WriteByteSeq(Guid[0]);
-    data.WriteByteSeq(Guid[3]);
-    data.WriteByteSeq(Guid[4]);
-    data << uint32(spellId);        // should be same as in packet from client
-    data.WriteByteSeq(Guid[5]);
-    data.WriteByteSeq(Guid[6]);
-    data.WriteByteSeq(Guid[7]);
+    data.WriteByteSeq(guid[1]);
+    data.WriteByteSeq(guid[2]);
+    data.WriteByteSeq(guid[0]);
+    data.WriteByteSeq(guid[3]);
+    data.WriteByteSeq(guid[4]);
     data << uint32(reason);         // 1 == "Not enough money for trainer service." 0 == "Trainer service %d unavailable."
-
+    data.WriteByteSeq(guid[5]);
+    data.WriteByteSeq(guid[6]);
+    data.WriteByteSeq(guid[7]);
+    data << uint32(spellId);        // should be same as in packet from client
     SendPacket(&data);
 }
 
