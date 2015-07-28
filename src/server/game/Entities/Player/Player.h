@@ -1244,8 +1244,12 @@ class Player : public Unit, public GridObject<Player>
         // WoW Freedom custom methods [BEGIN]
         void SetSelectedGameObject(uint32 guid) { m_selected_go = guid; }
         void SetSelectedCreature(uint32 guid) { m_selected_npc = guid; }
+        void SetRaidInviteLeaderGuid(uint32 guid) { m_raid_leader_guid = guid; }
+        void SetRaidInviteExpire(time_t expire) { m_raid_invite_expire = expire; }
         uint32 GetSelectedGameObject() { return m_selected_go; }
         uint32 GetSelectedCreature() { return m_selected_npc; }
+        uint32 GetRaidInviteLeaderGuid() { return m_raid_leader_guid; }
+        time_t GetRaidInviteExpire() { return m_raid_invite_expire; }
         // WoW Freedom custom methods [END]
 
         bool TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options = 0);
@@ -2846,6 +2850,8 @@ class Player : public Unit, public GridObject<Player>
         // WoW Freedom custom members [BEGIN]
         uint32 m_selected_go;
         uint32 m_selected_npc;
+        uint32 m_raid_leader_guid;
+        time_t m_raid_invite_expire;
         // WoW Freedom custom members [END]
 
         // internal common parts for CanStore/StoreItem functions

@@ -678,6 +678,8 @@ Player::Player(WorldSession* session): Unit(true), phaseMgr(this)
     // WoW Freedom member init [BEGIN]
     m_selected_go = 0;
     m_selected_npc = 0;
+    m_raid_leader_guid = 0;
+    m_raid_invite_expire = time(NULL);
     // WoW Freedom member init [END]
 
     m_speakTime = 0;
