@@ -246,7 +246,7 @@ void OpcodeTable::InitializeClientTable()
     DEFINE_OPCODE_HANDLER(CMSG_GROUP_CHANGE_SUB_GROUP,             0x0000, STATUS_UNHANDLED, PROCESS_THREADUNSAFE, &WorldSession::HandleGroupChangeSubGroupOpcode    );
     DEFINE_OPCODE_HANDLER(CMSG_GROUP_DISBAND,                      0x1798, STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleGroupDisbandOpcode           ); // 5.4.8 18414
     DEFINE_OPCODE_HANDLER(CMSG_GROUP_INITIATE_ROLE_POLL,           0x1882, STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleGroupInitiatePollRole        ); // 5.4.8 18414
-    DEFINE_OPCODE_HANDLER(CMSG_GROUP_INVITE,                       0x072D, STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleGroupInviteOpcode            ); // 5.4.8 18414
+    DEFINE_OPCODE_HANDLER(CMSG_GROUP_INVITE,                       0x072D, STATUS_UNHANDLED,  PROCESS_THREADUNSAFE, &WorldSession::HandleGroupInviteOpcode            ); // 5.4.8 18414
     DEFINE_OPCODE_HANDLER(CMSG_GROUP_INVITE_RESPONSE,              0x0D61, STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleGroupInviteResponseOpcode    ); // 5.4.8 18414
     DEFINE_OPCODE_HANDLER(CMSG_GROUP_RAID_CONVERT,                 0x032C, STATUS_LOGGEDIN,  PROCESS_THREADUNSAFE, &WorldSession::HandleGroupRaidConvertOpcode       ); // 5.4.8 18414
     DEFINE_OPCODE_HANDLER(CMSG_GROUP_REQUEST_JOIN_UPDATES,         0x0000, STATUS_UNHANDLED, PROCESS_INPLACE,      &WorldSession::Handle_NULL                        );

@@ -3,8 +3,8 @@
 #include "Chat.h"
 #include "World.h"
 #include "Player.h"
-
-#define DEFAULT_SUBGROUP "MAIN"
+#include "Group.h"
+#include "Language.h"
 
 class fraid_commandscript : public CommandScript
 {
@@ -55,14 +55,14 @@ public:
         uint32 source_guid = source->GetGUIDLow();
 
         // cant be already in raid
-        if (IsInRaid(source_guid))
+        if (FRaid::IsInRaid(source_guid))
         {
             handler->PSendSysMessage("You are already in a raid. To create a new one, you need to leave/disband your current raid group.");
             return true;
         }
         else
         {
-            InsertRaidMember(source_guid, source_guid, 1);
+            FRaid::InsertRaidMember(source_guid, source_guid, 1);
             handler->PSendSysMessage("Raid group successfully created.");
             return true;
         }
@@ -72,15 +72,16 @@ public:
     {
         Player* source = handler->GetSession()->GetPlayer();
         uint32 source_guid = source->GetGUIDLow();
+        
 
-        if (!IsRaidLeader(source_guid))
+        if (!FRaid::IsRaidLeader(source_guid))
         {
             handler->PSendSysMessage("You must be in a raid group AND you need to be the leader of that raid group.");
             return true;
         }
 
         // delete raid group entries
-        DeleteRaid(source_guid);
+        FRaid::DeleteRaid(source_guid);
 
         handler->PSendSysMessage("Raid group successfully disbanded.");
         return true;
@@ -92,16 +93,16 @@ public:
         uint32 source_guid = source->GetGUIDLow();
 
         // target can't be in raid
-        if (!IsInRaid(source_guid))
+        if (!FRaid::IsInRaid(source_guid))
         {
             handler->PSendSysMessage("You must first create a raid group to invite people.");
             return true;
         }
 
         // executor needs to be assistant or leader to invite
-        if (!IsAssistant(source_guid))
+        if (!FRaid::IsAssistant(source_guid))
         {
-            handler->PSendSysMessage("You need to be assistant or raid leader to invite people.");
+            handler->PSendSysMessage("You need to be assistant or raid leader to perform this command.");
             return true;
         }
 
@@ -111,24 +112,23 @@ public:
 
         if (!target)
         {
-            handler->PSendSysMessage("Target not found or not online.");
             return true;
         }
 
         uint32 target_guid = target->GetGUIDLow();
 
         // target can't be in already existing raid group
-        if (IsInRaid(target_guid))
+        if (FRaid::IsInRaid(target_guid))
         {
             handler->PSendSysMessage("Target is already in a raid.");
             return true;
         }
 
-        target->SetRaidInviteLeaderGuid(GetLeaderGuid(source_guid));
+        target->SetRaidInviteLeaderGuid(FRaid::GetLeaderGuid(source_guid));
         target->SetRaidInviteExpire(time(NULL) + 5*MINUTE);
 
         handler->PSendSysMessage("Invite sent to %s.", handler->GetNameLink(target).c_str());
-        ChatHandler(target->GetSession()).PSendSysMessage("> Received raid invite from %s. Type '.raid accept' (without quotes) to accept it.", handler->GetNameLink().c_str());
+        ChatHandler(target->GetSession()).PSendSysMessage("Received raid invite from %s. Type '.raid accept' (without quotes) to accept it.", handler->GetNameLink().c_str());
 
         return true;
     }
@@ -140,22 +140,24 @@ public:
         uint32 leader_guid = source->GetRaidInviteLeaderGuid();
 
         // if expired
-        if (source->GetRaidInviteExpire() <= time(NULL))
+        if (source->GetRaidInviteExpire() < time(NULL))
         {
             handler->PSendSysMessage("Your last raid invite has expired.");
             return true;
         }
 
+        source->SetRaidInviteExpire(time(NULL));
+        source->SetRaidInviteLeaderGuid(0);
+
         // if raid group does not exist or its leader changed
-        if (!IsInRaid(leader_guid) || !IsRaidLeader(leader_guid))
+        if (!FRaid::IsInRaid(leader_guid) || !FRaid::IsRaidLeader(leader_guid))
         {
             handler->PSendSysMessage("Raid group no longer exists or it's leader has recently changed.");
             return true;
         }
 
-        InsertRaidMember(leader_guid, source_guid, 0);
-        BroadcastRaidMsg(handler, leader_guid, "Player " + handler->GetNameLink(source) + " has joined the raid.", CHAT_MSG_SYSTEM);
-        handler->PSendSysMessage("Successfully joined the raid.");
+        FRaid::InsertRaidMember(leader_guid, source_guid, 0);
+        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->GetNameLink(source) + " has joined the raid.", CHAT_MSG_SYSTEM);
         return true;
     }
 
@@ -165,55 +167,441 @@ public:
         uint32 source_guid = source->GetGUIDLow();
 
         // if not in raid
-        if (!IsInRaid(source_guid))
+        if (!FRaid::IsInRaid(source_guid))
         {
             handler->PSendSysMessage("You are not in a raid party.");
             return true;
         }
 
         // raid leaders cant leave, instead they can disband
-        if (IsRaidLeader(source_guid))
+        if (FRaid::IsRaidLeader(source_guid))
         {
             handler->PSendSysMessage("You can't leave raid group as raid leader. Make someone else a raid leader or disband raid.");
             return true;
         }
 
-        uint32 leader_guid = GetLeaderGuid(source_guid);
+        uint32 leader_guid = FRaid::GetLeaderGuid(source_guid);
 
-        DeleteMember(source_guid);
+        FRaid::DeleteMember(source_guid);
 
-        BroadcastRaidMsg(handler, leader_guid, "Player " + handler->GetNameLink() + " has left the raid.", CHAT_MSG_SYSTEM);
+        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->GetNameLink() + " has left the raid.", CHAT_MSG_SYSTEM);
+        handler->PSendSysMessage("Successfully left the raid.");
 
         return true;
     }
 
     static bool HandleRaidKickCommand(ChatHandler* handler, char const* args)
     {
+        Player* source = handler->GetSession()->GetPlayer();
+        uint32 source_guid = source->GetGUIDLow();
+
+        if (!FRaid::IsInRaid(source_guid))
+        {
+            handler->PSendSysMessage("You are not in a raid party.");
+            return true;
+        }
+
+        if (!FRaid::IsAssistant(source_guid))
+        {
+            handler->PSendSysMessage("You need to have assistant permissions of the raid to perform this command.");
+            return true;
+        }
+
+        // get target
+        uint32 target_guid;
+        std::string target_name;
+        Player* target = NULL;
+        if (!*args)
+        {
+            handler->extractPlayerTarget((char*)args, &target);
+            if (!target)
+                return true;
+            target_guid = target->GetGUIDLow();
+            target_name = target->GetName();
+        }
+        else
+        {
+            target_name = args;
+            target_guid = GUID_LOPART(sObjectMgr->GetPlayerGUIDByName(args));
+            target = sObjectMgr->GetPlayerByLowGUID(target_guid);
+            if (!target_guid)
+            {
+                handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+                return true;
+            }
+        }
+
+        uint32 leader_guid = FRaid::GetLeaderGuid(source_guid);
+
+        if (leader_guid != FRaid::GetLeaderGuid(target_guid))
+        {
+            handler->PSendSysMessage("Target not in your raid.");
+            return true;
+        }
+
+        if (source_guid == target_guid)
+        {
+            handler->PSendSysMessage("Can't kick yourself.");
+            return true;
+        }
+
+        if (FRaid::IsRaidLeader(target_guid))
+        {
+            handler->PSendSysMessage("Can't kick raid leader.");
+            return true;
+        }
+
+        if (FRaid::IsAssistant(target_guid) && !FRaid::IsRaidLeader(source_guid))
+        {
+            handler->PSendSysMessage("Only leader raid leader can kick assistants.");
+            return true;
+        }
+
+        FRaid::DeleteMember(target_guid);
+        if (handler->needReportToTarget(target))
+            ChatHandler(target->GetSession()).PSendSysMessage("You have been kicked from the raid.");
+
+        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->playerLink(target_name) + " has been kicked from the raid.", CHAT_MSG_SYSTEM);
+
         return true;
     }
 
     static bool HandleRaidMoveCommand(ChatHandler* handler, char const* args)
     {
+        Player* source = handler->GetSession()->GetPlayer();
+        uint32 source_guid = source->GetGUIDLow();
+        char* params[2];
+
+        // params:
+        // [0] - required, subgroup name
+        // [1] - optional, player name (will try to use targeted player without this param)
+        params[0] = strtok((char*)args, " ");
+        params[1] = strtok(NULL, " ");
+
+        if (!params[0])
+        {
+            handler->PSendSysMessage("Not enough arguments. Syntax: .raid move $subgroupName [$playerName]");
+            return true;
+        }
+
+        if (!FRaid::IsInRaid(source_guid))
+        {
+            handler->PSendSysMessage("You are not in a raid party.");
+            return true;
+        }
+
+        if (!FRaid::IsAssistant(source_guid))
+        {
+            handler->PSendSysMessage("You need to have assistant permissions of the raid to perform this command.");
+            return true;
+        }
+
+        // get target
+        uint32 target_guid;
+        std::string target_name;
+        Player* target = NULL;
+        if (!params[1])
+        {
+            handler->extractPlayerTarget(NULL, &target);
+            if (!target)
+                return true;
+            target_guid = target->GetGUIDLow();
+            target_name = target->GetName();
+        }
+        else
+        {
+            target_name = params[1];
+            target_guid = GUID_LOPART(sObjectMgr->GetPlayerGUIDByName(params[1]));
+            target = sObjectMgr->GetPlayerByLowGUID(target_guid);
+            if (!target_guid)
+            {
+                handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+                return true;
+            }
+        }
+
+        uint32 leader_guid = FRaid::GetLeaderGuid(source_guid);
+
+        if (leader_guid != FRaid::GetLeaderGuid(target_guid))
+        {
+            handler->PSendSysMessage("Target not in your raid.");
+            return true;
+        }
+
+        std::string old_subgroup = FRaid::GetSubgroup(target_guid);
+        std::string new_subgroup = params[0];
+
+        // capitalize letters for better consistency, since subgroup SQL queries are case-insensitive
+        std::transform(new_subgroup.begin(), new_subgroup.end(), new_subgroup.begin(), toupper);
+
+        FRaid::MoveMember(target_guid, new_subgroup);
+
+        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->playerLink(target_name) +
+            " has been moved from subgroup |cFF00ADEF" + old_subgroup + "|r to subgroup |cFF00ADEF" + new_subgroup + "|r.", CHAT_MSG_SYSTEM);
         return true;
     }
 
     static bool HandleRaidPromoteCommand(ChatHandler* handler, char const* args)
     {
+        Player* source = handler->GetSession()->GetPlayer();
+        uint32 source_guid = source->GetGUIDLow();
+
+        if (!FRaid::IsInRaid(source_guid))
+        {
+            handler->PSendSysMessage("You are not in a raid party.");
+            return true;
+        }
+
+        if (!FRaid::IsRaidLeader(source_guid))
+        {
+            handler->PSendSysMessage("You need to be leader of the raid to perform this command.");
+            return true;
+        }
+
+        // get target
+        uint32 target_guid;
+        std::string target_name;
+        Player* target = NULL;
+        if (!*args)
+        {
+            handler->extractPlayerTarget((char*)args, &target);
+            if (!target)
+                return true;
+            target_guid = target->GetGUIDLow();
+            target_name = target->GetName();
+        }
+        else
+        {
+            target_name = args;
+            target_guid = GUID_LOPART(sObjectMgr->GetPlayerGUIDByName(args));
+            target = sObjectMgr->GetPlayerByLowGUID(target_guid);
+            if (!target_guid)
+            {
+                handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+                return true;
+            }
+        }
+
+        uint32 leader_guid = FRaid::GetLeaderGuid(source_guid);
+
+        if (leader_guid != FRaid::GetLeaderGuid(target_guid))
+        {
+            handler->PSendSysMessage("Target not in your raid.");
+            return true;
+        }
+
+        if (source_guid == target_guid)
+        {
+            handler->PSendSysMessage("Can't assist-promote yourself.");
+            return true;
+        }
+
+        if (FRaid::IsAssistant(target_guid))
+        {
+            handler->PSendSysMessage("Target already is an assistant.");
+            return true;
+        }
+
+        FRaid::UpdateAssist(target_guid, 1);
+
+        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->playerLink(target_name) + " has been promoted to assistant.", CHAT_MSG_SYSTEM);
         return true;
     }
 
     static bool HandleRaidDemoteCommand(ChatHandler* handler, char const* args)
     {
+        Player* source = handler->GetSession()->GetPlayer();
+        uint32 source_guid = source->GetGUIDLow();
+
+        if (!FRaid::IsInRaid(source_guid))
+        {
+            handler->PSendSysMessage("You are not in a raid party.");
+            return true;
+        }
+
+        if (!FRaid::IsRaidLeader(source_guid))
+        {
+            handler->PSendSysMessage("You need to be leader of the raid to perform this command.");
+            return true;
+        }
+
+        // get target
+        uint32 target_guid;
+        std::string target_name;
+        Player* target = NULL;
+        if (!*args)
+        {
+            handler->extractPlayerTarget((char*)args, &target);
+            if (!target)
+                return true;
+            target_guid = target->GetGUIDLow();
+            target_name = target->GetName();
+        }
+        else
+        {
+            target_name = args;
+            target_guid = GUID_LOPART(sObjectMgr->GetPlayerGUIDByName(args));
+            target = sObjectMgr->GetPlayerByLowGUID(target_guid);
+            if (!target_guid)
+            {
+                handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+                return true;
+            }
+        }
+
+        uint32 leader_guid = FRaid::GetLeaderGuid(source_guid);
+
+        if (leader_guid != FRaid::GetLeaderGuid(target_guid))
+        {
+            handler->PSendSysMessage("Target not in your raid.");
+            return true;
+        }
+
+        if (source_guid == target_guid)
+        {
+            handler->PSendSysMessage("Can't assist-demote yourself.");
+            return true;
+        }
+
+        if (!FRaid::IsAssistant(target_guid))
+        {
+            handler->PSendSysMessage("Target is not an assistant.");
+            return true;
+        }
+
+        FRaid::UpdateAssist(target_guid, 0);
+
+        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->playerLink(target_name) + " has been demoted from being an assistant.", CHAT_MSG_SYSTEM);
         return true;
     }
 
     static bool HandleRaidLeaderCommand(ChatHandler* handler, char const* args)
     {
+        Player* source = handler->GetSession()->GetPlayer();
+        uint32 source_guid = source->GetGUIDLow();
+
+        if (!FRaid::IsInRaid(source_guid))
+        {
+            handler->PSendSysMessage("You are not in a raid party.");
+            return true;
+        }
+
+        if (!FRaid::IsRaidLeader(source_guid))
+        {
+            handler->PSendSysMessage("You need to be leader of the raid to perform this command.");
+            return true;
+        }
+
+        // get target
+        uint32 new_leader_guid;
+        std::string target_name;
+        Player* target = NULL;
+        if (!*args)
+        {
+            handler->extractPlayerTarget((char*)args, &target);
+            if (!target)
+                return true;
+            new_leader_guid = target->GetGUIDLow();
+            target_name = target->GetName();
+        }
+        else
+        {
+            target_name = args;
+            new_leader_guid = GUID_LOPART(sObjectMgr->GetPlayerGUIDByName(args));
+            target = sObjectMgr->GetPlayerByLowGUID(new_leader_guid);
+            if (!new_leader_guid)
+            {
+                handler->SendSysMessage(LANG_PLAYER_NOT_FOUND);
+                return true;
+            }
+        }
+
+        if (source_guid != FRaid::GetLeaderGuid(new_leader_guid))
+        {
+            handler->PSendSysMessage("Target not in your raid.");
+            return true;
+        }
+
+        if (source_guid == new_leader_guid)
+        {
+            handler->PSendSysMessage("Can't transfer leadership to yourself. That would be pointless.");
+            return true;
+        }
+
+        std::string subgroup = FRaid::GetSubgroup(new_leader_guid);
+        FRaid::DeleteMember(new_leader_guid);
+        FRaid::InsertRaidMember(new_leader_guid, new_leader_guid, 1, subgroup);
+
+        // begin member transfer to the new raid group
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_MEMBERS);
+        stmt->setUInt32(0, source_guid);
+        PreparedQueryResult result = WorldDatabase.Query(stmt);
+
+        do
+        {
+            Field* fields = result->Fetch();
+            uint32 raid_member_guid = fields[1].GetUInt32();
+            subgroup = fields[2].GetString();
+            uint8 assistant = fields[3].GetUInt8();
+            FRaid::DeleteMember(raid_member_guid);
+            FRaid::InsertRaidMember(new_leader_guid, raid_member_guid, assistant, subgroup);
+        } while (result->NextRow());
+
+        // just to be safe, since above iteration should delete old raid
+        FRaid::DeleteRaid(source_guid);
+
+        FRaid::BroadcastRaidMsg(source, new_leader_guid, "Player " + handler->playerLink(target_name) + " has been given leadership of the raid.", CHAT_MSG_SYSTEM);
         return true;
     }
 
     static bool HandleRaidListCommand(ChatHandler* handler, char const* args)
     {
+        Player* source = handler->GetSession()->GetPlayer();
+        uint32 source_guid = source->GetGUIDLow();
+
+        if (!FRaid::IsInRaid(source_guid))
+        {
+            handler->PSendSysMessage("You are not in a raid party.");
+            return true;
+        }
+
+        uint32 leader_guid = FRaid::GetLeaderGuid(source_guid);
+
+        // begin member transfer to the new raid group
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_MEMBERS);
+        stmt->setUInt32(0, leader_guid);
+        PreparedQueryResult result = WorldDatabase.Query(stmt);
+        
+        handler->PSendSysMessage("Listing raid members. Following list entry format is used:");
+        handler->PSendSysMessage("[Leader/Assist/Member] [Subgroup name] [Player name]");
+
+        // COLOR CODES:
+        // Leader = |cFFFF4709
+        // Subgroup = |cFF00ADEF
+        // Assist = |cFFE6CC80
+        // Member = |cFFFFFFFF
+
+        // list leader at the top
+        std::string target_name = sWorld->GetCharacterNameData(leader_guid)->m_name;
+        handler->PSendSysMessage("[|cFFFF4709Leader|r] [|cFF00ADEF%s|r] %s", FRaid::GetSubgroup(leader_guid).c_str(), handler->playerLink(target_name).c_str());
+
+        do
+        {
+            Field* fields = result->Fetch();
+            uint32 raid_member_guid = fields[1].GetUInt32();
+            std::string subgroup = fields[2].GetString();
+            uint8 assistant = fields[3].GetUInt8();
+
+            if (raid_member_guid == leader_guid)
+            {
+                continue;
+            }
+
+            std::string target_name = sWorld->GetCharacterNameData(raid_member_guid)->m_name;
+            std::string raid_rank = leader_guid == raid_member_guid ? "|cFFFF4709Leader|r" : assistant != 0 ? "|cFFE6CC80Assist|r" : "|cFFFFFFFFMember|r";
+            handler->PSendSysMessage("[%s] [|cFF00ADEF%s|r] %s", raid_rank.c_str(), subgroup.c_str(), handler->playerLink(target_name).c_str());
+        } while (result->NextRow());
+
         return true;
     }
 
@@ -230,17 +618,17 @@ public:
         }
 
         // need to be in raid to use raid chat
-        if (!IsInRaid(source_guid))
+        if (!FRaid::IsInRaid(source_guid))
         {
             handler->PSendSysMessage("You are not in a raid party.");
             return true;
         }
         
         // broadcast raid say
-        uint32 leader_guid = GetLeaderGuid(source_guid);
+        uint32 leader_guid = FRaid::GetLeaderGuid(source_guid);
         std::string msg = (char*)args;
         ChatMsg msg_type = leader_guid == source_guid ? CHAT_MSG_RAID_LEADER : CHAT_MSG_RAID;
-        BroadcastRaidMsg(handler, leader_guid, msg, msg_type);
+        FRaid::BroadcastRaidMsg(source, leader_guid, msg, msg_type);
 
         return true;
     }
@@ -258,23 +646,23 @@ public:
         }
 
         // need to be in raid to use raid chat
-        if (!IsInRaid(source_guid))
+        if (!FRaid::IsInRaid(source_guid))
         {
             handler->PSendSysMessage("You are not in a raid party.");
             return true;
         }
 
         // need to be assistant or leader to use raid warning
-        if (!IsAssistant(source_guid))
+        if (!FRaid::IsAssistant(source_guid))
         {
             handler->PSendSysMessage("You need to have assistant permissions of the raid to execute raid warnings.");
             return true;
         }
 
         // broadcast raid say
-        uint32 leader_guid = GetLeaderGuid(source_guid);
+        uint32 leader_guid = FRaid::GetLeaderGuid(source_guid);
         std::string msg = (char*)args;
-        BroadcastRaidMsg(handler, leader_guid, msg, CHAT_MSG_RAID_WARNING);
+        FRaid::BroadcastRaidMsg(source, leader_guid, msg, CHAT_MSG_RAID_WARNING);
 
         return true;
     }
@@ -296,145 +684,19 @@ public:
         }
 
         // need to be in raid to use raid chat
-        if (!IsInRaid(source_guid))
+        if (!FRaid::IsInRaid(source_guid))
         {
             handler->PSendSysMessage("You are not in a raid party.");
             return true;
         }
 
         // broadcast raid say
-        uint32 leader_guid = GetLeaderGuid(source_guid);
-        std::string subgroup = GetSubgroup(source_guid);
+        uint32 leader_guid = FRaid::GetLeaderGuid(source_guid);
+        std::string subgroup = FRaid::GetSubgroup(source_guid);
         std::string msg = (char*)args;
-        BroadcastPartyMsg(handler, leader_guid, subgroup, msg, CHAT_MSG_PARTY);
+        FRaid::BroadcastPartyMsg(source, leader_guid, subgroup, msg, CHAT_MSG_PARTY);
 
         return true;
-    }
-
-    #pragma endregion
-
-private:
-    #pragma region RAID HELPERS
-
-    static void BroadcastRaidMsg(ChatHandler* handler, uint32 leader_guid, std::string const msg, ChatMsg msg_type)
-    {
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_MEMBERS);
-        stmt->setUInt32(0, leader_guid);
-        PreparedQueryResult result = WorldDatabase.Query(stmt);
-        WorldPacket data;
-        ChatHandler::BuildChatPacket(data, msg_type, LANG_UNIVERSAL, handler->GetSession()->GetPlayer(), NULL, msg);
-
-        if (result)
-        {
-            do
-            {
-                Field* fields = result->Fetch();
-                uint32 target_guid = fields[1].GetUInt32();
-                Player* target = sObjectMgr->GetPlayerByLowGUID(target_guid);
-                if (target)
-                {
-                    target->GetSession()->SendPacket(&data);
-                }
-            } while (result->NextRow());
-        }
-    }
-
-    static void BroadcastPartyMsg(ChatHandler* handler, uint32 leader_guid, std::string const subgroup, std::string const msg, ChatMsg msg_type)
-    {
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_SUBGROUP_MEMBERS);
-        stmt->setString(0, subgroup);
-        stmt->setUInt32(1, leader_guid);
-        PreparedQueryResult result = WorldDatabase.Query(stmt);
-        WorldPacket data;
-        ChatHandler::BuildChatPacket(data, msg_type, LANG_UNIVERSAL, handler->GetSession()->GetPlayer(), NULL, msg);
-
-        if (result)
-        {
-            do
-            {
-                Field* fields = result->Fetch();
-                uint32 target_guid = fields[1].GetUInt32();
-                Player* target = sObjectMgr->GetPlayerByLowGUID(target_guid);
-                if (target)
-                {
-                    target->GetSession()->SendPacket(&data);
-                }
-            } while (result->NextRow());
-        }
-    }
-
-    static bool IsInRaid(uint32 player_guid)
-    {
-        PreparedStatement* stmt;
-        PreparedQueryResult result;
-        stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_BY_MEMBER);
-        stmt->setUInt32(0, player_guid);
-        result = WorldDatabase.Query(stmt);
-        return result;
-    }
-
-    static bool IsRaidLeader(uint32 player_guid)
-    {
-        PreparedStatement* stmt;
-        PreparedQueryResult result;
-        stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_IS_LEADER);
-        stmt->setUInt32(0, player_guid);
-        result = WorldDatabase.Query(stmt);
-        return result;
-    }
-
-    static bool IsAssistant(uint32 player_guid)
-    {
-        PreparedStatement* stmt;
-        PreparedQueryResult result;
-        stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_IS_ASSISTANT);
-        stmt->setUInt32(0, player_guid);
-        result = WorldDatabase.Query(stmt);
-        return result;
-    }
-
-    static void InsertRaidMember(uint32 leader_guid, uint32 member_guid, uint8 assistant)
-    {
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_RAID);
-        stmt->setUInt32(0, leader_guid);
-        stmt->setUInt32(1, member_guid);
-        stmt->setString(2, DEFAULT_SUBGROUP);
-        stmt->setUInt8(3, assistant); // 1: assistant perms, 0: no assistant perms
-        WorldDatabase.DirectExecute(stmt);
-    }
-
-    static void DeleteRaid(uint32 leader_guid)
-    {
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_DEL_RAID_ALL);
-        stmt->setUInt32(0, leader_guid);
-        WorldDatabase.DirectExecute(stmt);
-    }
-
-    static void DeleteMember(uint32 member_guid)
-    {
-        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_DEL_RAID_MEMBER);
-        stmt->setUInt32(0, member_guid);
-        WorldDatabase.DirectExecute(stmt);
-    }
-
-    static int GetLeaderGuid(uint32 player_guid)
-    {
-        PreparedStatement* stmt;
-        PreparedQueryResult result;
-        stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_BY_MEMBER);
-        stmt->setUInt32(0, player_guid);
-        result = WorldDatabase.Query(stmt);
-        return result ? result->Fetch()[0].GetUInt32() : 0;
-    }
-
-    static std::string GetSubgroup(uint32 player_guid)
-    {
-        PreparedStatement* stmt;
-        PreparedQueryResult result;
-        stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_BY_MEMBER);
-        stmt->setUInt32(0, player_guid);
-        result = WorldDatabase.Query(stmt);
-        return result ? result->Fetch()[2].GetString() : DEFAULT_SUBGROUP;
     }
 
     #pragma endregion

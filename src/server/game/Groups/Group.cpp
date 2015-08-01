@@ -26,6 +26,7 @@
 #include "ObjectMgr.h"
 #include "GroupMgr.h"
 #include "Group.h"
+#include "Chat.h"
 #include "Formulas.h"
 #include "ObjectAccessor.h"
 #include "Battleground.h"
@@ -52,6 +53,145 @@ void Roll::setLoot(Loot* pLoot)
 Loot* Roll::getLoot()
 {
     return getTarget();
+}
+
+void FRaid::BroadcastRaidMsg(Player* source, uint32 const leader_guid, std::string const msg, ChatMsg const msg_type)
+{
+    PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_MEMBERS);
+    stmt->setUInt32(0, leader_guid);
+    PreparedQueryResult result = WorldDatabase.Query(stmt);
+    WorldPacket data;
+    ChatHandler::BuildChatPacket(data, msg_type, LANG_UNIVERSAL, source, NULL, msg);
+
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            uint32 target_guid = fields[1].GetUInt32();
+            Player* target = sObjectMgr->GetPlayerByLowGUID(target_guid);
+            if (target)
+            {
+                target->GetSession()->SendPacket(&data);
+            }
+        } while (result->NextRow());
+    }
+}
+
+void FRaid::BroadcastPartyMsg(Player* source, uint32 const leader_guid, std::string const subgroup, std::string const msg, ChatMsg msg_type)
+{
+    PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_SUBGROUP_MEMBERS);
+    stmt->setString(0, subgroup);
+    stmt->setUInt32(1, leader_guid);
+    PreparedQueryResult result = WorldDatabase.Query(stmt);
+    WorldPacket data;
+    ChatHandler::BuildChatPacket(data, msg_type, LANG_UNIVERSAL, source, NULL, msg);
+
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            uint32 target_guid = fields[1].GetUInt32();
+            Player* target = sObjectMgr->GetPlayerByLowGUID(target_guid);
+            if (target)
+            {
+                target->GetSession()->SendPacket(&data);
+            }
+        } while (result->NextRow());
+    }
+}
+
+bool FRaid::IsInRaid(uint32 const player_guid)
+{
+    PreparedStatement* stmt;
+    PreparedQueryResult result;
+    stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_BY_MEMBER);
+    stmt->setUInt32(0, player_guid);
+    result = WorldDatabase.Query(stmt);
+    return result;
+}
+
+bool FRaid::IsRaidLeader(uint32 const player_guid)
+{
+    PreparedStatement* stmt;
+    PreparedQueryResult result;
+    stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_IS_LEADER);
+    stmt->setUInt32(0, player_guid);
+    result = WorldDatabase.Query(stmt);
+    return result;
+}
+
+bool FRaid::IsAssistant(uint32 const player_guid)
+{
+    PreparedStatement* stmt;
+    PreparedQueryResult result;
+    stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_IS_ASSISTANT);
+    stmt->setUInt32(0, player_guid);
+    result = WorldDatabase.Query(stmt);
+    return result;
+}
+
+void FRaid::InsertRaidMember(uint32 const leader_guid, uint32 const member_guid, uint8 const assistant, std::string const subgroup)
+{
+    PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_RAID);
+    stmt->setUInt32(0, leader_guid);
+    stmt->setUInt32(1, member_guid);
+    stmt->setString(2, subgroup);
+    stmt->setUInt8(3, assistant); // 1: assistant perms, 0: no assistant perms
+    WorldDatabase.DirectExecute(stmt);
+}
+
+void FRaid::DeleteRaid(uint32 const leader_guid)
+{
+    PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_DEL_RAID_ALL);
+    stmt->setUInt32(0, leader_guid);
+    WorldDatabase.DirectExecute(stmt);
+}
+
+void FRaid::DeleteMember(uint32 const member_guid)
+{
+    PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_DEL_RAID_MEMBER);
+    stmt->setUInt32(0, member_guid);
+    WorldDatabase.DirectExecute(stmt);
+}
+
+int FRaid::GetLeaderGuid(uint32 const player_guid)
+{
+    PreparedStatement* stmt;
+    PreparedQueryResult result;
+    stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_BY_MEMBER);
+    stmt->setUInt32(0, player_guid);
+    result = WorldDatabase.Query(stmt);
+    return result ? result->Fetch()[0].GetUInt32() : 0;
+}
+
+std::string FRaid::GetSubgroup(uint32 const player_guid)
+{
+    PreparedStatement* stmt;
+    PreparedQueryResult result;
+    stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_BY_MEMBER);
+    stmt->setUInt32(0, player_guid);
+    result = WorldDatabase.Query(stmt);
+    return result ? result->Fetch()[2].GetString() : DEFAULT_SUBGROUP;
+}
+
+void FRaid::MoveMember(uint32 const player_guid, std::string const new_subgroup)
+{
+    PreparedStatement* stmt;
+    stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_RAID_SUBGROUP);
+    stmt->setString(0, new_subgroup);
+    stmt->setUInt32(1, player_guid);
+    WorldDatabase.DirectExecute(stmt);
+}
+
+void FRaid::UpdateAssist(uint32 const player_guid, uint8 const assist)
+{
+    PreparedStatement* stmt;
+    stmt = WorldDatabase.GetPreparedStatement(WORLD_UPD_RAID_ASSIST);
+    stmt->setUInt8(0, assist);
+    stmt->setUInt32(1, player_guid);
+    WorldDatabase.DirectExecute(stmt);
 }
 
 Group::Group() : m_leaderGuid(0), m_leaderName(""), m_groupType(GROUPTYPE_NORMAL),

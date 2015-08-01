@@ -25,6 +25,7 @@
 #include "LootMgr.h"
 #include "QueryResult.h"
 #include "SharedDefines.h"
+#include "Chat.h"
 
 class Battlefield;
 class Battleground;
@@ -361,4 +362,36 @@ class Group
         uint32              m_dbStoreId;                    // Represents the ID used in database (Can be reused by other groups if group was disbanded)
         bool                _readyCheckInProgress;
 };
+
+// FREEDOM CUSTOM RAID GROUP SYSTEM
+#define DEFAULT_SUBGROUP "DEFAULT"
+
+class FRaid
+{
+public:
+    static void BroadcastRaidMsg(Player* source, uint32 const leader_guid, std::string const msg, ChatMsg const msg_type);
+
+    static void BroadcastPartyMsg(Player* source, uint32 const leader_guid, std::string const subgroup, std::string const msg, ChatMsg msg_type);
+
+    static bool IsInRaid(uint32 const player_guid);
+
+    static bool IsRaidLeader(uint32 const player_guid);
+
+    static bool IsAssistant(uint32 const player_guid);
+
+    static void InsertRaidMember(uint32 const leader_guid, uint32 const member_guid, uint8 const assistant, std::string const subgroup = DEFAULT_SUBGROUP);
+
+    static void DeleteRaid(uint32 const leader_guid);
+
+    static void DeleteMember(uint32 const member_guid);
+
+    static int GetLeaderGuid(uint32 const player_guid);
+
+    static std::string GetSubgroup(uint32 const player_guid);
+
+    static void MoveMember(uint32 const player_guid, std::string const new_subgroup);
+
+    static void UpdateAssist(uint32 const player_guid, uint8 const assist);
+};
+
 #endif

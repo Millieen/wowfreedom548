@@ -130,11 +130,12 @@ void WorldDatabaseConnection::DoPrepareStatements()
 
     // CUSTOM RAID
     PrepareStatement(WORLD_SEL_RAID_BY_MEMBER, "SELECT leader_guid, member_guid, subgroup, assistant FROM freedom_raid WHERE member_guid = ?", CONNECTION_SYNCH);
-    PrepareStatement(WORLD_SEL_RAID_MEMBERS, "SELECT leader_guid, member_guid, subgroup, assistant FROM freedom_raid WHERE leader_guid = ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_SEL_RAID_MEMBERS, "SELECT leader_guid, member_guid, subgroup, assistant FROM freedom_raid WHERE leader_guid = ? ORDER BY subgroup ASC, assistant DESC", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_RAID_SUBGROUP_MEMBERS, "SELECT leader_guid, member_guid, subgroup, assistant FROM freedom_raid WHERE subgroup = ? AND leader_guid = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_RAID_IS_ASSISTANT, "SELECT 1 FROM freedom_raid WHERE member_guid = ? AND assistant = 1", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_RAID_IS_LEADER, "SELECT 1 FROM freedom_raid WHERE leader_guid = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_INS_RAID, "INSERT INTO freedom_raid (leader_guid, member_guid, subgroup, assistant) VALUES (?, ?, ?, ?)", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_UPD_RAID_ASSIST, "UPDATE freedom_raid SET assistant = ? WHERE member_guid = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_UPD_RAID_SUBGROUP, "UPDATE freedom_raid SET subgroup = ? WHERE member_guid = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_DEL_RAID_ALL, "DELETE FROM freedom_raid WHERE leader_guid = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_DEL_RAID_MEMBER, "DELETE FROM freedom_raid WHERE member_guid = ?", CONNECTION_SYNCH);
