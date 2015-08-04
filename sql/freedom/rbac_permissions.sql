@@ -119,7 +119,6 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 
 -- [DEFAULT COMMANDS]
 (@MODERATOR, 267), (@MODERATOR, 268), (@MODERATOR, 269), (@MODERATOR, 270), (@MODERATOR, 271), (@MODERATOR, 272), -- cast
-(@MODERATOR, 371), (@MODERATOR, 373), (@MODERATOR, 374), -- gm, gm fly
 (@MODERATOR, 377), (@MODERATOR, 378), (@MODERATOR, 379), (@MODERATOR, 380), (@MODERATOR, 381), (@MODERATOR, 382), (@MODERATOR, 383), (@MODERATOR, 384), (@MODERATOR, 385), (@MODERATOR, 386),-- goto
 (@MODERATOR, 387), (@MODERATOR, 388), (@MODERATOR, 389), (@MODERATOR, 390), (@MODERATOR, 391), (@MODERATOR, 392), (@MODERATOR, 393), (@MODERATOR, 394), (@MODERATOR, 395), (@MODERATOR, 396), (@MODERATOR, 397), (@MODERATOR, 398), (@MODERATOR, 399),-- gobject
 (@MODERATOR, 436), (@MODERATOR, 437), (@MODERATOR, 439), (@MODERATOR, 440), (@MODERATOR, 441),-- list
@@ -170,7 +169,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@GM, 252), (@GM, 253), (@GM, 254), (@GM, 255), (@GM, 256), -- unban
 (@GM, 273), (@GM, 274), (@GM, 275), (@GM, 276), (@GM, 277), (@GM, 279), (@GM, 280), (@GM, 283), (@GM, 284), (@GM, 285), (@GM, 286), -- character
 (@GM, 291), (@GM, 292), (@GM, 293), -- cheat
-(@GM, 372), (@GM, 375), (@GM, 376), -- gm chat, gm list, gm visible
+(@GM, 371), (@GM, 372), (@GM, 373), (@GM, 374), (@GM, 375), (@GM, 376), -- gm
 (@GM, 401), (@GM, 402), (@GM, 403), (@GM, 404), (@GM, 405), (@GM, 406), (@GM, 407), -- guild
 -- honor (408 - 411) skipped, not useful
 (@GM, 417), (@GM, 418), (@GM, 419), (@GM, 420), (@GM, 421), (@GM, 422), (@GM, 423), (@GM, 424), (@GM, 425), (@GM, 426), (@GM, 427), (@GM, 428), -- learn
