@@ -3103,7 +3103,7 @@ void Player::RemoveFromGroup(Group* group, uint64 guid, RemoveMethod method /* =
 
 void Player::SendLogXPGain(uint32 GivenXP, Unit* victim, uint32 BonusXP, bool recruitAFriend, float /*group_rate*/)
 {
-    ObjectGuid victimGuid = victim ? victim->GetGUID() : NULL;
+    ObjectGuid victimGuid = victim ? victim->GetGUID() : 0;
 
     WorldPacket data(SMSG_LOG_XPGAIN, 1 + 1 + 8 + 4 + 4 + 4 + 1);
     data.WriteBit(0);            // has XP
@@ -4463,6 +4463,39 @@ void Player::_SaveSpellCooldowns(SQLTransaction& trans)
     // if something changed execute
     if (!first_round)
         trans->Append(ss.str().c_str());
+}
+
+uint32 Player::GetNextResetSpecializationCost() const
+{
+    // The first time reset costs 1 gold
+    if (GetSpecializationResetCost() < 1 * GOLD)
+        return 1 * GOLD;
+    // then 5 gold
+    else if (GetSpecializationResetCost() < 5 * GOLD)
+        return 5 * GOLD;
+    // After that it increases in increments of 5 gold
+    else if (GetSpecializationResetCost() < 10 * GOLD)
+        return 10 * GOLD;
+    else
+    {
+        uint64 months = (sWorld->GetGameTime() - GetSpecializationResetTime()) / MONTH;
+        if (months > 0)
+        {
+            // This cost will be reduced by a rate of 5 gold per month
+            int32 new_cost = int32(GetSpecializationResetCost() - 5 * GOLD*months);
+            // to a minimum of 10 gold.
+            return (new_cost < 10 * GOLD ? 10 * GOLD : new_cost);
+        }
+        else
+        {
+            // After that it increases in increments of 5 gold
+            int32 new_cost = GetSpecializationResetCost() + 5 * GOLD;
+            // until it hits a cap of 50 gold.
+            if (new_cost > 50 * GOLD)
+                new_cost = 50 * GOLD;
+            return new_cost;
+        }
+    }
 }
 
 uint32 Player::GetNextResetTalentsCost() const
@@ -10208,31 +10241,34 @@ void Player::SetBindPoint(uint64 guid)
     GetSession()->SendPacket(&data);
 }
 
-void Player::SendTalentWipeConfirm(uint64 guid)
+void Player::SendTalentWipeConfirm(ObjectGuid guid, bool resetType)
 {
-    ObjectGuid Guid = guid;
-    uint8 RespecType = 0;
-    uint32 Cost = sWorld->getBoolConfig(CONFIG_NO_RESET_TALENT_COST) ? 0 : GetNextResetTalentsCost();
-    WorldPacket data(SMSG_RESPEC_WIPE_CONFIRM, (8 + 1 + 4));
+    uint32 Cost = 0;
 
-    data.WriteBit(Guid[5]);
-    data.WriteBit(Guid[7]);
-    data.WriteBit(Guid[3]);
-    data.WriteBit(Guid[2]);
-    data.WriteBit(Guid[1]);
-    data.WriteBit(Guid[0]);
-    data.WriteBit(Guid[4]);
-    data.WriteBit(Guid[6]);
+    if (!resetType)
+        Cost = sWorld->getBoolConfig(CONFIG_NO_RESET_TALENT_COST) ? 0 : GetNextResetTalentsCost();
+    else
+        Cost = sWorld->getBoolConfig(CONFIG_NO_RESET_TALENT_COST) ? 0 : GetNextResetSpecializationCost();
 
-    data.WriteByteSeq(Guid[1]);
-    data.WriteByteSeq(Guid[0]);
-    data << uint8(RespecType);
-    data.WriteByteSeq(Guid[7]);
-    data.WriteByteSeq(Guid[3]);
-    data.WriteByteSeq(Guid[2]);
-    data.WriteByteSeq(Guid[5]);
-    data.WriteByteSeq(Guid[6]);
-    data.WriteByteSeq(Guid[4]);
+    WorldPacket data(SMSG_RESPEC_WIPE_CONFIRM, 8 + 1 + 4);
+    data.WriteBit(guid[5]);
+    data.WriteBit(guid[7]);
+    data.WriteBit(guid[3]);
+    data.WriteBit(guid[2]);
+    data.WriteBit(guid[1]);
+    data.WriteBit(guid[0]);
+    data.WriteBit(guid[4]);
+    data.WriteBit(guid[6]);
+
+    data.WriteByteSeq(guid[1]);
+    data.WriteByteSeq(guid[0]);
+    data << uint8(resetType);  // 0 = talent, 1 = specialization
+    data.WriteByteSeq(guid[7]);
+    data.WriteByteSeq(guid[3]);
+    data.WriteByteSeq(guid[2]);
+    data.WriteByteSeq(guid[5]);
+    data.WriteByteSeq(guid[6]);
+    data.WriteByteSeq(guid[4]);
     data << uint32(Cost);
 
     GetSession()->SendPacket(&data);
@@ -14921,6 +14957,10 @@ void Player::PrepareGossipMenu(WorldObject* source, uint32 menuId /*= 0*/, bool 
                     if (!creature->isCanTrainingAndResetTalentsOf(this))
                         canTalk = false;
                     break;
+                case GOSSIP_OPTION_UNLEARN_SPEC:
+                    if (!creature->isCanTrainingAndResetTalentsOf(this))
+                        canTalk = false;
+                    break;
                 case GOSSIP_OPTION_UNLEARNPETTALENTS:
                     if (!GetPet() || GetPet()->getPetType() != HUNTER_PET || GetPet()->m_spells.size() <= 1 || creature->GetCreatureTemplate()->trainer_type != TRAINER_TYPE_PETS || creature->GetCreatureTemplate()->trainer_class != CLASS_HUNTER)
                         canTalk = false;
@@ -15120,11 +15160,15 @@ void Player::OnGossipSelect(WorldObject* source, uint32 gossipListId, uint32 men
             break;
         case GOSSIP_OPTION_UNLEARNTALENTS:
             PlayerTalkClass->SendCloseGossip();
-            SendTalentWipeConfirm(guid);
+            SendTalentWipeConfirm(guid, false);
             break;
         case GOSSIP_OPTION_UNLEARNPETTALENTS:
             PlayerTalkClass->SendCloseGossip();
             ResetPetTalents();
+            break;
+        case GOSSIP_OPTION_UNLEARN_SPEC:
+            PlayerTalkClass->SendCloseGossip();
+            SendTalentWipeConfirm(guid, true);
             break;
         case GOSSIP_OPTION_TAXIVENDOR:
             GetSession()->SendTaxiMenu(source->ToCreature());
