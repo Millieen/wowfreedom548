@@ -1,0 +1,3 @@
+Last WORLD update: 2015_08_04_00_locales_npc_text.sql
+Last AUTH update: <none>
+Last CHAR update: 2015_06_22_00_char_blackmarket_auctions.sql
