@@ -34,6 +34,7 @@ public:
             { "list",               rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidListCommand,              "", NULL },
             { "say",                rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidSayCommand,               "", NULL },
             { "warning",            rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidWarningCommand,           "", NULL },
+            { "unlock",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidUnlockCommand,           "", NULL },
             { NULL, 0, false, NULL, "", NULL }
         };
 
@@ -127,8 +128,8 @@ public:
         target->SetRaidInviteLeaderGuid(FRaid::GetLeaderGuid(source_guid));
         target->SetRaidInviteExpire(time(NULL) + 5*MINUTE);
 
-        handler->PSendSysMessage("Invite sent to %s.", handler->GetNameLink(target).c_str());
-        ChatHandler(target->GetSession()).PSendSysMessage("Received raid invite from %s. Type '.raid accept' (without quotes) to accept it.", handler->GetNameLink().c_str());
+        handler->PSendSysMessage("%s has received your raid invite.", handler->GetNameLink(target).c_str());
+        ChatHandler(target->GetSession()).PSendSysMessage("%s invited you to his raid. Type '.raid accept' (without quotes) to accept it.", handler->GetNameLink().c_str());
 
         return true;
     }
@@ -157,7 +158,7 @@ public:
         }
 
         FRaid::InsertRaidMember(leader_guid, source_guid, 0);
-        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->GetNameLink(source) + " has joined the raid.", CHAT_MSG_SYSTEM);
+        FRaid::BroadcastRaidMsg(source, leader_guid, handler->GetNameLink(source) + " has joined the raid.", CHAT_MSG_SYSTEM);
         return true;
     }
 
@@ -184,7 +185,7 @@ public:
 
         FRaid::DeleteMember(source_guid);
 
-        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->GetNameLink() + " has left the raid.", CHAT_MSG_SYSTEM);
+        FRaid::BroadcastRaidMsg(source, leader_guid, handler->GetNameLink() + " has left the raid.", CHAT_MSG_SYSTEM);
         handler->PSendSysMessage("Successfully left the raid.");
 
         return true;
@@ -261,7 +262,7 @@ public:
         if (handler->needReportToTarget(target))
             ChatHandler(target->GetSession()).PSendSysMessage("You have been kicked from the raid.");
 
-        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->playerLink(target_name) + " has been kicked from the raid.", CHAT_MSG_SYSTEM);
+        FRaid::BroadcastRaidMsg(source, leader_guid, handler->playerLink(target_name) + " has been kicked from the raid.", CHAT_MSG_SYSTEM);
 
         return true;
     }
@@ -336,7 +337,7 @@ public:
 
         FRaid::MoveMember(target_guid, new_subgroup);
 
-        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->playerLink(target_name) +
+        FRaid::BroadcastRaidMsg(source, leader_guid, handler->playerLink(target_name) +
             " has been moved from subgroup |cFF00ADEF" + old_subgroup + "|r to subgroup |cFF00ADEF" + new_subgroup + "|r.", CHAT_MSG_SYSTEM);
         return true;
     }
@@ -404,7 +405,7 @@ public:
 
         FRaid::UpdateAssist(target_guid, 1);
 
-        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->playerLink(target_name) + " has been promoted to assistant.", CHAT_MSG_SYSTEM);
+        FRaid::BroadcastRaidMsg(source, leader_guid, handler->playerLink(target_name) + " has been promoted to assistant.", CHAT_MSG_SYSTEM);
         return true;
     }
 
@@ -471,7 +472,7 @@ public:
 
         FRaid::UpdateAssist(target_guid, 0);
 
-        FRaid::BroadcastRaidMsg(source, leader_guid, "Player " + handler->playerLink(target_name) + " has been demoted from being an assistant.", CHAT_MSG_SYSTEM);
+        FRaid::BroadcastRaidMsg(source, leader_guid, handler->playerLink(target_name) + " has been demoted from being an assistant.", CHAT_MSG_SYSTEM);
         return true;
     }
 
@@ -550,7 +551,7 @@ public:
         // just to be safe, since above iteration should delete old raid
         FRaid::DeleteRaid(source_guid);
 
-        FRaid::BroadcastRaidMsg(source, new_leader_guid, "Player " + handler->playerLink(target_name) + " has been given leadership of the raid.", CHAT_MSG_SYSTEM);
+        FRaid::BroadcastRaidMsg(source, new_leader_guid, handler->playerLink(target_name) + " has been given leadership of the raid.", CHAT_MSG_SYSTEM);
         return true;
     }
 
@@ -571,9 +572,6 @@ public:
         PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_MEMBERS);
         stmt->setUInt32(0, leader_guid);
         PreparedQueryResult result = WorldDatabase.Query(stmt);
-        
-        handler->PSendSysMessage("Listing raid members. Following list entry format is used:");
-        handler->PSendSysMessage("[Leader/Assist/Member] [Subgroup name] [Player name]");
 
         // COLOR CODES:
         // Leader = |cFFFF4709
@@ -582,8 +580,20 @@ public:
         // Member = |cFFFFFFFF
 
         // list leader at the top
-        std::string target_name = sWorld->GetCharacterNameData(leader_guid)->m_name;
-        handler->PSendSysMessage("[|cFFFF4709Leader|r] [|cFF00ADEF%s|r] %s", FRaid::GetSubgroup(leader_guid).c_str(), handler->playerLink(target_name).c_str());
+        const CharacterNameData* name_data = sWorld->GetCharacterNameData(leader_guid);
+
+        // raid leader player probably deleted, raid needs to be disbanded
+        if (name_data == NULL) 
+        {
+            FRaid::BroadcastRaidMsg(NULL, leader_guid, "Raid leader character no longer exists. Raid is disbanded!", CHAT_MSG_SYSTEM);
+            FRaid::DeleteRaid(leader_guid);
+        }
+
+        handler->PSendSysMessage("Listing raid members. Following list entry format is used:");
+        handler->PSendSysMessage("[Player name] - [Leader/Assist/Member] - [Subgroup name]");
+
+        std::string target_name = name_data->m_name;
+        handler->PSendSysMessage("%s - [|cFFFF4709Leader|r] - [|cFF00ADEF%s|r]", handler->playerLink(target_name).c_str(), FRaid::GetSubgroup(leader_guid).c_str());
 
         do
         {
@@ -597,9 +607,20 @@ public:
                 continue;
             }
 
-            std::string target_name = sWorld->GetCharacterNameData(raid_member_guid)->m_name;
-            std::string raid_rank = leader_guid == raid_member_guid ? "|cFFFF4709Leader|r" : assistant != 0 ? "|cFFE6CC80Assist|r" : "|cFFFFFFFFMember|r";
-            handler->PSendSysMessage("[%s] [|cFF00ADEF%s|r] %s", raid_rank.c_str(), subgroup.c_str(), handler->playerLink(target_name).c_str());
+            name_data = sWorld->GetCharacterNameData(raid_member_guid);
+            
+            // if character no longer exists, remove it from the raid
+            if (name_data == NULL) 
+            {
+                FRaid::DeleteMember(raid_member_guid);
+            }
+            else 
+            {
+                // "|cffffffff|Hplayer:"+name+"|h["+name+"]|h|r"
+                std::string target_name = name_data->m_name;
+                std::string raid_rank = assistant != 0 ? "|cFFE6CC80Assist|r" : "|cFFFFFFFFMember|r";
+                handler->PSendSysMessage("%s - [%s] - [|cFF00ADEF%s|r]", handler->playerLink(target_name).c_str(), raid_rank.c_str(), subgroup.c_str());
+            }
         } while (result->NextRow());
 
         return true;
@@ -664,6 +685,13 @@ public:
         std::string msg = (char*)args;
         FRaid::BroadcastRaidMsg(source, leader_guid, msg, CHAT_MSG_RAID_WARNING);
 
+        return true;
+    }
+
+    static bool HandleRaidUnlockCommand(ChatHandler* handler, char const* args)
+    {
+        FRaid::UnlockRaidPartyChat(handler->GetSession()->GetPlayer());
+        handler->PSendSysMessage("Force-unlocked raid/party chat.");
         return true;
     }
 

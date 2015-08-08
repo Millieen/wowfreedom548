@@ -1102,13 +1102,14 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     pCurrChar->SetInGameTime(getMSTime());
 
+    FRaid::UnlockRaidPartyChat(pCurrChar);
     // announce group about member online (must be after add to player list to receive announce to self)
-    if (Group* group = pCurrChar->GetGroup())
-    {
-        //pCurrChar->groupInfo.group->SendInit(this); // useless
-        group->SendUpdate();
-        group->ResetMaxEnchantingLevel();
-    }
+    //if (Group* group = pCurrChar->GetGroup())
+    //{
+    //    //pCurrChar->groupInfo.group->SendInit(this); // useless
+    //    group->SendUpdate();
+    //    group->ResetMaxEnchantingLevel();
+    //}
 
     // friend status
     sSocialMgr->SendFriendStatus(pCurrChar, FRIEND_ONLINE, pCurrChar->GetGUIDLow(), true);

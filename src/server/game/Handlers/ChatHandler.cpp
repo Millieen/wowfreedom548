@@ -358,23 +358,35 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
         case CHAT_MSG_PARTY:
         case CHAT_MSG_PARTY_LEADER:
         {
-            // if player is in battleground, he cannot say to battleground members by /p
-            Group* group = GetPlayer()->GetOriginalGroup();
-            if (!group)
+            if (FRaid::IsInRaid(GetPlayer()->GetGUIDLow()))
             {
-                group = _player->GetGroup();
-                if (!group || group->isBGGroup())
-                    return;
+                uint32 leader_guid = FRaid::GetLeaderGuid(GetPlayer()->GetGUIDLow());
+                uint32 source_guid = GetPlayer()->GetGUIDLow();
+                std::string subgroup = FRaid::GetSubgroup(source_guid);
+                FRaid::BroadcastPartyMsg(GetPlayer(), leader_guid, subgroup, msg, CHAT_MSG_PARTY);
+            }
+            else
+            {
+                ChatHandler(this).PSendSysMessage("Not in a custom raid party.");
             }
 
-            if (group->IsLeader(GetPlayer()->GetGUID()))
-                type = CHAT_MSG_PARTY_LEADER;
+            // if player is in battleground, he cannot say to battleground members by /p
+            //Group* group = GetPlayer()->GetOriginalGroup();
+            //if (!group)
+            //{
+            //    group = _player->GetGroup();
+            //    if (!group || group->isBGGroup())
+            //        return;
+            //}
 
-            sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
+            //if (group->IsLeader(GetPlayer()->GetGUID()))
+            //    type = CHAT_MSG_PARTY_LEADER;
 
-            WorldPacket data;
-            ChatHandler::BuildChatPacket(data, ChatMsg(type), Language(lang), _player, NULL, msg);
-            group->BroadcastPacket(&data, false, group->GetMemberGroup(GetPlayer()->GetGUID()));
+            //sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
+
+            //WorldPacket data;
+            //ChatHandler::BuildChatPacket(data, ChatMsg(type), Language(lang), _player, NULL, msg);
+            //group->BroadcastPacket(&data, false, group->GetMemberGroup(GetPlayer()->GetGUID()));
         } break;
         case CHAT_MSG_GUILD:
         {
@@ -403,36 +415,64 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recvData)
         case CHAT_MSG_RAID:
         case CHAT_MSG_RAID_LEADER:
         {
-            // if player is in battleground, he cannot say to battleground members by /ra
-            Group* group = GetPlayer()->GetOriginalGroup();
-            if (!group)
+            if (FRaid::IsInRaid(GetPlayer()->GetGUIDLow()))
             {
-                group = GetPlayer()->GetGroup();
-                if (!group || group->isBGGroup() || !group->isRaidGroup())
-                    return;
+                uint32 leader_guid = FRaid::GetLeaderGuid(GetPlayer()->GetGUIDLow());
+                uint32 source_guid = GetPlayer()->GetGUIDLow();
+                FRaid::BroadcastRaidMsg(GetPlayer(), leader_guid, msg, leader_guid == source_guid ? CHAT_MSG_RAID_LEADER : CHAT_MSG_RAID);
+            }
+            else
+            {
+                ChatHandler(this).PSendSysMessage("Not in a custom raid party.");
             }
 
-            if (group->IsLeader(GetPlayer()->GetGUID()))
-                type = CHAT_MSG_RAID_LEADER;
+            // if player is in battleground, he cannot say to battleground members by /ra
+            //Group* group = GetPlayer()->GetOriginalGroup();
+            //if (!group)
+            //{
+            //    group = GetPlayer()->GetGroup();
+            //    if (!group || group->isBGGroup() || !group->isRaidGroup())
+            //        return;
+            //}
 
-            sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
+            //if (group->IsLeader(GetPlayer()->GetGUID()))
+            //    type = CHAT_MSG_RAID_LEADER;
 
-            WorldPacket data;
-            ChatHandler::BuildChatPacket(data, ChatMsg(type), Language(lang), _player, NULL, msg);
-            group->BroadcastPacket(&data, false);
+            //sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
+
+            //WorldPacket data;
+            //ChatHandler::BuildChatPacket(data, ChatMsg(type), Language(lang), _player, NULL, msg);
+            //group->BroadcastPacket(&data, false);
         } break;
         case CHAT_MSG_RAID_WARNING:
         {
-            Group* group = GetPlayer()->GetGroup();
-            if (!group || !group->isRaidGroup() || !(group->IsLeader(GetPlayer()->GetGUID()) || group->IsAssistant(GetPlayer()->GetGUID())) || group->isBGGroup())
-                return;
+            if (FRaid::IsInRaid(GetPlayer()->GetGUIDLow()))
+            {
+                uint32 leader_guid = FRaid::GetLeaderGuid(GetPlayer()->GetGUIDLow());
+                uint32 source_guid = GetPlayer()->GetGUIDLow();
+                if (FRaid::IsAssistant(source_guid))
+                {
+                    FRaid::BroadcastRaidMsg(GetPlayer(), leader_guid, msg, CHAT_MSG_RAID_WARNING);
+                }
+                else
+                {
+                    ChatHandler(this).PSendSysMessage("Must have at least assistant permissions to broadcast raid warning.");
+                }
+            }
+            else
+            {
+                ChatHandler(this).PSendSysMessage("Not in a custom raid party.");
+            }
+            //Group* group = GetPlayer()->GetGroup();
+            //if (!group || !group->isRaidGroup() || !(group->IsLeader(GetPlayer()->GetGUID()) || group->IsAssistant(GetPlayer()->GetGUID())) || group->isBGGroup())
+            //    return;
 
-            sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
+            //sScriptMgr->OnPlayerChat(GetPlayer(), type, lang, msg, group);
 
-            WorldPacket data;
+            //WorldPacket data;
             //in battleground, raid warning is sent only to players in battleground - code is ok
-            ChatHandler::BuildChatPacket(data, CHAT_MSG_RAID_WARNING, Language(lang), _player, NULL, msg);
-            group->BroadcastPacket(&data, false);
+            //ChatHandler::BuildChatPacket(data, CHAT_MSG_RAID_WARNING, Language(lang), _player, NULL, msg);
+            //group->BroadcastPacket(&data, false);
         } break;
         case CHAT_MSG_BATTLEGROUND:
         case CHAT_MSG_BATTLEGROUND_LEADER:

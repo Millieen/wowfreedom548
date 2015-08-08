@@ -55,6 +55,116 @@ Loot* Roll::getLoot()
     return getTarget();
 }
 
+void FRaid::UnlockRaidPartyChat(Player* target)
+{
+    ByteBuffer memberData;
+    ObjectGuid groupGuid = 0;
+    ObjectGuid leaderGuid = target->GetGUID();
+    ObjectGuid looterGuid = 0;
+
+    WorldPacket data(SMSG_GROUP_LIST, 4 + 3 + 4 + 1 + 8 + 1 + 8 + 3 + (1 * (4 + 2 + 8)) + 1 + 8 + 2 + 4 + 4);
+    data.WriteBit(groupGuid[0]);
+    data.WriteBit(leaderGuid[7]);
+    data.WriteBit(leaderGuid[1]);
+    data.WriteBit(1);                                   // has dungeon and raid difficulty
+    data.WriteBit(groupGuid[7]);
+    data.WriteBit(leaderGuid[6]);
+    data.WriteBit(leaderGuid[5]);
+    data.WriteBits(1, 21);
+
+    ObjectGuid memberGuid = target->GetGUID();
+    std::string memberName = target->GetName();
+
+    Player* member = ObjectAccessor::FindPlayer(memberGuid);
+
+    data.WriteBit(memberGuid[1]);
+    data.WriteBit(memberGuid[2]);
+    data.WriteBit(memberGuid[5]);
+    data.WriteBit(memberGuid[6]);
+    data.WriteBits(memberName.size(), 6);
+    data.WriteBit(memberGuid[7]);
+    data.WriteBit(memberGuid[3]);
+    data.WriteBit(memberGuid[0]);
+    data.WriteBit(memberGuid[4]);
+
+    memberData.WriteByteSeq(memberGuid[6]);
+    memberData.WriteByteSeq(memberGuid[3]);
+    memberData << uint8(0);
+    memberData << uint8(MEMBER_STATUS_ONLINE);
+    memberData.WriteByteSeq(memberGuid[7]);
+    memberData.WriteByteSeq(memberGuid[4]);
+    memberData.WriteByteSeq(memberGuid[1]);
+    memberData.WriteString(memberName);
+    memberData.WriteByteSeq(memberGuid[5]);
+    memberData.WriteByteSeq(memberGuid[2]);
+    memberData << uint8(0);
+    memberData.WriteByteSeq(memberGuid[0]);
+    memberData << uint8(0);
+
+    data.WriteBit(leaderGuid[3]);
+    data.WriteBit(leaderGuid[0]);
+    data.WriteBit(1);                                   // has loot mode
+    data.WriteBit(groupGuid[5]);
+    data.WriteBit(looterGuid[6]);
+    data.WriteBit(looterGuid[4]);
+    data.WriteBit(looterGuid[5]);
+    data.WriteBit(looterGuid[2]);
+    data.WriteBit(looterGuid[1]);
+    data.WriteBit(looterGuid[0]);
+    data.WriteBit(looterGuid[7]);
+    data.WriteBit(looterGuid[3]);
+    data.WriteBit(groupGuid[2]);
+    data.WriteBit(groupGuid[4]);
+    data.WriteBit(groupGuid[1]);
+    data.WriteBit(0);                                   // is LFG
+    data.WriteBit(leaderGuid[2]);
+    data.WriteBit(groupGuid[6]);
+
+    data.WriteBit(leaderGuid[4]);
+    data.WriteBit(groupGuid[3]);
+    data.FlushBits();
+
+    data.WriteByteSeq(leaderGuid[0]);
+
+    data << uint32(0);               // raid Difficulty
+    data << uint32(0);            // dungeon Difficulty
+
+    data.append(memberData);
+
+    data.WriteByteSeq(groupGuid[1]);
+    data.WriteByteSeq(leaderGuid[4]);
+    data.WriteByteSeq(leaderGuid[2]);
+    data << uint8(0);
+    data.WriteByteSeq(looterGuid[0]);
+    data.WriteByteSeq(looterGuid[5]);
+    data.WriteByteSeq(looterGuid[4]);
+    data.WriteByteSeq(looterGuid[3]);
+    data.WriteByteSeq(looterGuid[2]);
+    data << uint8(0);
+    data.WriteByteSeq(looterGuid[7]);
+    data.WriteByteSeq(looterGuid[1]);
+    data.WriteByteSeq(looterGuid[6]);
+    data.WriteByteSeq(groupGuid[6]);
+    data.WriteByteSeq(groupGuid[4]);
+    data << uint8(GROUPTYPE_RAID);
+    data << uint8(0);
+    data << uint32(0);
+    data.WriteByteSeq(groupGuid[7]);
+    data.WriteByteSeq(leaderGuid[3]);
+    data.WriteByteSeq(leaderGuid[1]);
+    data << uint32(0);
+    data.WriteByteSeq(groupGuid[0]);
+    data.WriteByteSeq(groupGuid[2]);
+    data.WriteByteSeq(groupGuid[5]);
+    data.WriteByteSeq(groupGuid[3]);
+    data.WriteByteSeq(leaderGuid[7]);
+    data << uint8(0);
+    data.WriteByteSeq(leaderGuid[5]);
+    data.WriteByteSeq(leaderGuid[6]);
+
+    target->GetSession()->SendPacket(&data);
+}
+
 void FRaid::BroadcastPacket(WorldPacket* packet, uint32 leader_guid)
 {
     PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_MEMBERS);
