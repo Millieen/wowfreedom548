@@ -711,8 +711,11 @@ void WorldSession::HandleRandomRollOpcode(WorldPacket& recvData)
     data.WriteByteSeq(guid[6]);
     data.WriteByteSeq(guid[7]);
 
-    if (GetPlayer()->GetGroup())
-        GetPlayer()->GetGroup()->BroadcastPacket(&data, false);
+    // default group broadcast
+    //if (GetPlayer()->GetGroup())
+    //    GetPlayer()->GetGroup()->BroadcastPacket(&data, false);
+    if (FRaid::IsInRaid(GetPlayer()->GetGUIDLow()))
+        FRaid::BroadcastPacket(&data, FRaid::GetLeaderGuid(GetPlayer()->GetGUIDLow()));
     else
         SendPacket(&data);
 }

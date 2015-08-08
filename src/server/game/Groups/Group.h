@@ -369,6 +369,8 @@ class Group
 class FRaid
 {
 public:
+    static void BroadcastPacket(WorldPacket* packet, uint32 leader_guid);
+
     static void BroadcastRaidMsg(Player* source, uint32 const leader_guid, std::string const msg, ChatMsg const msg_type);
 
     static void BroadcastPartyMsg(Player* source, uint32 const leader_guid, std::string const subgroup, std::string const msg, ChatMsg msg_type);

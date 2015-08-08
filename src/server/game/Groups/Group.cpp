@@ -55,6 +55,27 @@ Loot* Roll::getLoot()
     return getTarget();
 }
 
+void FRaid::BroadcastPacket(WorldPacket* packet, uint32 leader_guid)
+{
+    PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_MEMBERS);
+    stmt->setUInt32(0, leader_guid);
+    PreparedQueryResult result = WorldDatabase.Query(stmt);
+
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            uint32 target_guid = fields[1].GetUInt32();
+            Player* target = sObjectMgr->GetPlayerByLowGUID(target_guid);
+            if (target)
+            {
+                target->GetSession()->SendPacket(packet);
+            }
+        } while (result->NextRow());
+    }
+}
+
 void FRaid::BroadcastRaidMsg(Player* source, uint32 const leader_guid, std::string const msg, ChatMsg const msg_type)
 {
     PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_MEMBERS);
