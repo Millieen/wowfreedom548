@@ -61,6 +61,9 @@ public:
                 //{ "mailbox",        rbac::RBAC_PERM_COMMAND_FREEDOM_MAILBOX,            false, &HandleFreedomMailboxCommand,        "", NULL }, TODO: implement mailbox command when SMSG_SHOW_MAILBOX or similar opcode is implemented
                 { "money",          rbac::RBAC_PERM_COMMAND_FREEDOM_MONEY,              false, &HandleFreedomMoneyCommand,          "", NULL },
                 { "bank",           rbac::RBAC_PERM_COMMAND_FREEDOM_BANK,               false, &HandleFreedomBankCommand,           "", NULL },
+                { "customize",      rbac::RBAC_PERM_COMMAND_FREEDOM_CUSTOMIZE,          false, &HandleFreedomCustomizeCommand,      "", NULL },
+                //{ "racechange",     rbac::RBAC_PERM_COMMAND_FREEDOM_RACE_CHANGE,        false, &HandleFreedomRaceChangeCommand,     "", NULL }, race/faction change opcode is not handled yet
+                //{ "factionchange",  rbac::RBAC_PERM_COMMAND_FREEDOM_FACTION_CHANGE,     false, &HandleFreedomFactionChangeCommand,  "", NULL }, race/faction change opcode is not handled yet
                 { NULL, 0, false, NULL, "", NULL }
         };
 
@@ -82,7 +85,49 @@ public:
     * |cFFFF4500 MSG_COLOR_ORANGEY   - tag name, link name, target/source name, for exclamation.
     */
 
-    // UTILITIES
+    #pragma region UTILITIES
+    static bool HandleFreedomCustomizeCommand(ChatHandler* handler, const char* /*args*/) {
+        Player* source = handler->GetSession()->GetPlayer();
+
+        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
+        stmt->setUInt16(0, uint16(AT_LOGIN_CUSTOMIZE));
+        stmt->setUInt32(1, source->GetGUIDLow());
+        CharacterDatabase.Execute(stmt);
+
+        source->SetAtLoginFlag(AT_LOGIN_CUSTOMIZE);
+        handler->PSendSysMessage("%s>>%s Your character is now flagged for a re-customization.", MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+
+        return true;
+    }
+
+    static bool HandleFreedomRaceChangeCommand(ChatHandler* handler, const char* /*args*/) {
+        Player* source = handler->GetSession()->GetPlayer();
+
+        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
+        stmt->setUInt16(0, uint16(AT_LOGIN_CHANGE_RACE));
+        stmt->setUInt32(1, source->GetGUIDLow());
+        CharacterDatabase.Execute(stmt);
+
+        source->SetAtLoginFlag(AT_LOGIN_CHANGE_RACE);
+        handler->PSendSysMessage("%s>>%s Your character is now flagged for a race change. Previously flagged customization must be finished before this one is displayed at login screen.", MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+
+        return true;
+    }
+
+    static bool HandleFreedomFactionChangeCommand(ChatHandler* handler, const char* /*args*/) {
+        Player* source = handler->GetSession()->GetPlayer();
+
+        PreparedStatement* stmt = CharacterDatabase.GetPreparedStatement(CHAR_UPD_ADD_AT_LOGIN_FLAG);
+        stmt->setUInt16(0, uint16(AT_LOGIN_CHANGE_FACTION));
+        stmt->setUInt32(1, source->GetGUIDLow());
+        CharacterDatabase.Execute(stmt);
+
+        source->SetAtLoginFlag(AT_LOGIN_CHANGE_FACTION);
+        handler->PSendSysMessage("%s>>%s Your character is now flagged for a faction change. Previously flagged customization must be finished before this one is displayed at login screen.", MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+
+        return true;
+    }
+
     static bool HandleFreedomMoneyCommand(ChatHandler* handler, const char* /*args*/) {
         Player* source = handler->GetSession()->GetPlayer();
         source->SetMoney(int64(100000000000));
@@ -127,8 +172,9 @@ public:
     static bool HandleFreedomMailboxCommand(ChatHandler* handler, const char* /*args*/) {
         return true;
     }
+    #pragma endregion UTILITIES
 
-    // MODIFICATION
+    #pragma region MODIFICATION
     // MODIFICATION -> CS_MODIFY-CMDs
     static bool HandleFreedomScaleCommand(ChatHandler* handler, const char* args)
     {
@@ -849,8 +895,9 @@ public:
 
         return true;
     }
+    #pragma endregion MODIFICATION
 
-    // LOCATIONAL
+    #pragma region LOCATIONAL
     // LOCATIONAL -> SUMMON
     static bool HandleFreedomSummonCommand(ChatHandler* handler, const char* args)
     {
@@ -1411,6 +1458,7 @@ public:
 
         return true;
     }
+    #pragma endregion LOCATIONAL
 };
 
 void AddSC_freedom_commandscript()

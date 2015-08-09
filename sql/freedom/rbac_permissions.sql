@@ -41,8 +41,8 @@ INSERT INTO auth.rbac_permissions (`id`, `name`) VALUES
 (1015, 'Command: freedom speed'),			(1016, 'Command: freedom scale'),		(1017, 'Command: freedom drunk'),
 (1018, 'Command: freedom waterwalk'),		(1019, 'Command: freedom fly'),			(1020, 'Command: freedom teleport add/del'),
 (1021, 'Command: freedom morph add/del'), (1022, 'Command: freedom morph list'), (1023, 'Command: freedom ptele list'),
-(1024, 'Command: freedom tele list'), 		(1025, 'Command: freedom item'), 		(1026, 'Command: freedom item add/del'),
-(1027, 'Command: freedom item list'),
+(1024, 'Command: freedom tele list'),     (1025, 'Command: freedom customize'), (1026, 'Command: freedom racechange'),
+(1027, 'Command: freedom factionchange'),
 -- [.gobject]
 (3000, 'Command: gobject set scale'), (3001, 'Command: gobject phase'), (3002, 'Command: gobject select'),
 (3003, 'Command: gobject disable'), (3004, 'Command: gobject enable'),
@@ -107,7 +107,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@PLAYER, 507), -- help
 
 -- [CUSTOM COMMANDS]
-(@PLAYER, 1000), (@PLAYER, 1001), (@PLAYER, 1002), (@PLAYER, 1003), (@PLAYER, 1004), (@PLAYER, 1005), (@PLAYER, 1006), (@PLAYER, 1007), (@PLAYER, 1008), (@PLAYER, 1009), (@PLAYER, 1010), (@PLAYER, 1011), (@PLAYER, 1012), (@PLAYER, 1013), (@PLAYER, 1014), (@PLAYER, 1015), (@PLAYER, 1016), (@PLAYER, 1017), (@PLAYER, 1018), (@PLAYER, 1019), (@PLAYER, 1022), (@PLAYER, 1023), (@PLAYER, 1024), (@PLAYER, 1025), (@PLAYER, 1027), -- freedom
+(@PLAYER, 1000), (@PLAYER, 1001), (@PLAYER, 1002), (@PLAYER, 1003), (@PLAYER, 1004), (@PLAYER, 1005), (@PLAYER, 1006), (@PLAYER, 1007), (@PLAYER, 1008), (@PLAYER, 1009), (@PLAYER, 1010), (@PLAYER, 1011), (@PLAYER, 1012), (@PLAYER, 1013), (@PLAYER, 1014), (@PLAYER, 1015), (@PLAYER, 1016), (@PLAYER, 1017), (@PLAYER, 1018), (@PLAYER, 1019), (@PLAYER, 1022), (@PLAYER, 1023), (@PLAYER, 1024), (@PLAYER, 1025), (@PLAYER, 1026), (@PLAYER, 1027), -- freedom
 (@PLAYER, 8005), -- raid/party
 
 -- [198 - Role: [GM1] Moderator, ST]
@@ -168,7 +168,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@GM, 248), (@GM, 249), (@GM, 250), (@GM, 251), -- banlist
 (@GM, 252), (@GM, 253), (@GM, 254), (@GM, 255), (@GM, 256), -- unban
 (@GM, 273), (@GM, 274), (@GM, 275), (@GM, 276), (@GM, 277), (@GM, 279), (@GM, 280), (@GM, 283), (@GM, 284), (@GM, 285), (@GM, 286), -- character
-(@GM, 291), (@GM, 292), (@GM, 293), -- cheat
+(@GM, 291), (@GM, 292), (@GM, 293), (@GM, 294), -- cheat
 (@GM, 371), (@GM, 372), (@GM, 373), (@GM, 374), (@GM, 375), (@GM, 376), -- gm
 (@GM, 401), (@GM, 402), (@GM, 403), (@GM, 404), (@GM, 405), (@GM, 406), (@GM, 407), -- guild
 -- honor (408 - 411) skipped, not useful
