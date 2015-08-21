@@ -8,7 +8,7 @@
 * Implement Premade characters
 * Instance Locking
 * Professions
-* Calendair & Events
+* Void Storage
 * Arenas - needs full rewrite O.o
 * Pets / Pet Battles
 * Scenarios
@@ -50,4 +50,4 @@
 * Auction House
 * Bank / Guild Bank
 * Transmogrify
-* Void Storage
+* Calendair & Events
