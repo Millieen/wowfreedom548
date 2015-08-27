@@ -122,6 +122,7 @@ void WorldDatabaseConnection::DoPrepareStatements()
     PrepareStatement(WORLD_SEL_CREATURE_NEAREST_SINGLE_EID, "SELECT guid, id, position_x, position_y, position_z, map, SQRT(POW(position_x - ?, 2) + POW(position_y - ?, 2) + POW(position_z - ?, 2)) AS distance FROM creature WHERE map = ? AND id = ? ORDER BY distance LIMIT 1", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_CREATURE_IS_DISABLED, "SELECT 1 FROM creature_template WHERE disabled = 1 AND entry = ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_UPD_CREATURE_DISABLED, "UPDATE creature_template SET disabled = ? WHERE entry = ?", CONNECTION_ASYNC);
+    PrepareStatement(WORLD_INS_CREATURE_ADDON_REPLACE, "REPLACE INTO creature_addon(guid, path_id, mount, bytes1, bytes2, emote, auras) VALUES (?, ?, ?, ?, ?, ?, ?)", CONNECTION_ASYNC);
 
     // CUSTOM ITEM CMDS
     PrepareStatement(WORLD_SEL_IS_PUBLIC_ITEM, "SELECT 1 FROM item_template WHERE entry = ? AND public = 1", CONNECTION_SYNCH);

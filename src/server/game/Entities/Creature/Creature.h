@@ -315,6 +315,10 @@ enum ChatType
 // `creature_addon` table
 struct CreatureAddon
 {
+    CreatureAddon() : path_id(0), mount(0), bytes1(0), bytes2(1), emote(0)
+    {
+    }
+
     uint32 path_id;
     uint32 mount;
     uint32 bytes1;
@@ -432,6 +436,7 @@ class Creature : public Unit, public GridObject<Creature>, public MapObject
         void SetEditor(uint32 account_id) { m_editor_id = account_id; }
         void SetCreatedTimestamp(time_t t) { m_created = t; }
         void SetModifiedTimestamp(time_t t) { m_modified = t; }
+        void SetCreatureAddonDB(const CreatureAddon& addon);
 
         uint32 GetCreator() { return m_creator_id; }
         uint32 GetEditor() { return m_editor_id; }

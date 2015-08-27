@@ -732,6 +732,8 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_NPC_ENABLE                             = 5001,
     RBAC_PERM_COMMAND_NPC_SELECT                             = 5002,
     RBAC_PERM_COMMAND_NPC_SCALE                              = 5003,
+    RBAC_PERM_COMMAND_NPC_SET_EMOTE                          = 5004,
+    RBAC_PERM_COMMAND_NPC_SET_STATE                          = 5005,
 
     // CUSTOM LIST CMDS         6000 <= X < 7000
 

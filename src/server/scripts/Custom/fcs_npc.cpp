@@ -150,6 +150,13 @@ EnumName<UnitFlags> const unitFlags[MAX_UNIT_FLAGS] =
     CREATE_NAMED_ENUM(UNIT_FLAG_UNK_31)
 };
 
+enum AuraSpells
+{
+    SPELL_PERMANENT_FEIGN_DEATH = 114371,
+    SPELL_PERMANENT_SLEEP_VISUAL = 107674,
+    SPELL_PERMANENT_HOVER = 138092
+};
+
 class fnpc_commandscript : public CommandScript
 {
 public:
@@ -180,6 +187,14 @@ public:
             { NULL, 0, false, NULL, "", NULL }
         };
 
+        static ChatCommand npcSetStateCommandTable[] =
+        {
+            { "death",      rbac::RBAC_PERM_COMMAND_NPC_SET_STATE,          false, &HandleNpcSetStateDeathCommand,                  "", NULL },
+            { "sleep",      rbac::RBAC_PERM_COMMAND_NPC_SET_STATE,          false, &HandleNpcSetStateSleepCommand,                  "", NULL },
+            { "hover",      rbac::RBAC_PERM_COMMAND_NPC_SET_STATE,          false, &HandleNpcSetStateHoverCommand,                  "", NULL },
+            { NULL, 0, false, NULL, "", NULL }
+        };
+
         static ChatCommand npcSetCommandTable[] =
         {
             { "entry",      rbac::RBAC_PERM_COMMAND_NPC_SET_ENTRY,          false, &HandleNpcSetEntryCommand,                       "", NULL },
@@ -192,6 +207,8 @@ public:
             { "spawntime",  rbac::RBAC_PERM_COMMAND_NPC_SET_SPAWNTIME,      false, &HandleNpcSetSpawnTimeCommand,                   "", NULL },
             { "data",       rbac::RBAC_PERM_COMMAND_NPC_SET_DATA,           false, &HandleNpcSetDataCommand,                        "", NULL },
             { "scale",      rbac::RBAC_PERM_COMMAND_NPC_SCALE,              false, &HandleNpcSetScaleCommand,                       "", NULL },
+            { "emote",      rbac::RBAC_PERM_COMMAND_NPC_SET_EMOTE,          false, &HandleNpcSetEmoteCommand,                       "", NULL },
+            { "state",      rbac::RBAC_PERM_COMMAND_NPC_SET_STATE,          false, NULL,                                            "", npcSetStateCommandTable },
             //{ "name",     rbac::RBAC_PERM_COMMAND_NPC_SET_NAME,           false, &HandleNpcSetNameCommand,                        "", NULL },
             //{ "subname",  rbac::RBAC_PERM_COMMAND_NPC_SET_SUBNAME,        false, &HandleNpcSetSubNameCommand,                     "", NULL },
             { NULL, 0, false, NULL, "", NULL }
@@ -227,6 +244,293 @@ public:
         };
 
         return commandTable;
+    }
+
+    #pragma region CUSTOM_COMMANDS
+
+    static bool HandleNpcSetStateDeathCommand(ChatHandler* handler, char const* args)
+    {
+        Creature* creature = NULL;
+        char* params[2];
+        params[0] = strtok((char*)args, " ");
+        params[1] = strtok(NULL, " ");
+
+        if (!params[0])
+        {
+            handler->PSendSysMessage("Not enough arguments. Syntax: .npc set state death on/off [$guid]");
+            return true;
+        }
+
+        if (strcmp(params[0], "on") != 0 && strcmp(params[0], "off") != 0)
+        {
+            handler->PSendSysMessage("First argument must be 'on' OR 'off' (without quotes).");
+            return true;
+        }
+
+        bool toggle = strcmp(params[0], "on") == 0;
+
+        if (params[1])
+        {
+            // number or [name] Shift-click form |color|Hcreature:creature_guid|h[name]|h|r
+            char* cId = handler->extractKeyFromLink(params[1], "Hcreature");
+            if (!cId)
+                return false;
+
+            uint32 lowguid = atoi(cId);
+            if (!lowguid)
+                return false;
+
+            if (CreatureData const* cr_data = sObjectMgr->GetCreatureData(lowguid))
+            {
+                creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_UNIT), (Creature*)NULL);
+                if (!creature)
+                    creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_PET), (Creature*)NULL);
+                if (!creature)
+                    creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_VEHICLE), (Creature*)NULL);
+            }
+        }
+        else
+        {
+            creature = handler->getSelectedCreature();
+        }
+
+        if (!creature)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        CreatureAddon& creature_addon = sObjectMgr->GetCreatureAddonContainer()[creature->GetGUIDLow()];
+
+        // remove aura
+        creature_addon.auras.erase(std::remove(creature_addon.auras.begin(), creature_addon.auras.end(), SPELL_PERMANENT_FEIGN_DEATH), creature_addon.auras.end());
+        creature->RemoveAura(SPELL_PERMANENT_FEIGN_DEATH);
+
+        // apply aura if executor turned it on
+        if (toggle)
+        {
+            // make sure that previous auras are removed, since death state blocks all of them
+            creature_addon.auras.erase(creature_addon.auras.begin(), creature_addon.auras.end());
+            creature->RemoveAllAuras();
+
+            creature_addon.auras.push_back(SPELL_PERMANENT_FEIGN_DEATH);
+            creature->AddAura(SPELL_PERMANENT_FEIGN_DEATH, creature);
+        }
+
+        creature->SetCreatureAddonDB(creature_addon);
+
+        handler->PSendSysMessage("Creature's death animation state successfully toggled (previously active auras are removed).");
+        return true;
+    }
+
+    static bool HandleNpcSetStateSleepCommand(ChatHandler* handler, char const* args)
+    {
+        Creature* creature = NULL;
+        char* params[2];
+        params[0] = strtok((char*)args, " ");
+        params[1] = strtok(NULL, " ");
+
+        if (!params[0])
+        {
+            handler->PSendSysMessage("Not enough arguments. Syntax: .npc set state sleep on/off [$guid]");
+            return true;
+        }
+
+        if (strcmp(params[0], "on") != 0 && strcmp(params[0], "off") != 0)
+        {
+            handler->PSendSysMessage("First argument must be 'on' OR 'off' (without quotes).");
+            return true;
+        }
+
+        bool toggle = strcmp(params[0], "on") == 0;
+
+        if (params[1])
+        {
+            // number or [name] Shift-click form |color|Hcreature:creature_guid|h[name]|h|r
+            char* cId = handler->extractKeyFromLink(params[1], "Hcreature");
+            if (!cId)
+                return false;
+
+            uint32 lowguid = atoi(cId);
+            if (!lowguid)
+                return false;
+
+            if (CreatureData const* cr_data = sObjectMgr->GetCreatureData(lowguid))
+            {
+                creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_UNIT), (Creature*)NULL);
+                if (!creature)
+                    creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_PET), (Creature*)NULL);
+                if (!creature)
+                    creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_VEHICLE), (Creature*)NULL);
+            }
+        }
+        else
+        {
+            creature = handler->getSelectedCreature();
+        }
+
+        if (!creature)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        CreatureAddon& creature_addon = sObjectMgr->GetCreatureAddonContainer()[creature->GetGUIDLow()];
+
+        // remove aura
+        creature_addon.auras.erase(std::remove(creature_addon.auras.begin(), creature_addon.auras.end(), SPELL_PERMANENT_SLEEP_VISUAL), creature_addon.auras.end());
+        creature->RemoveAura(SPELL_PERMANENT_SLEEP_VISUAL);
+
+        // apply/remove permanent sleep visual
+        if (toggle)
+        {
+            // make sure that deathstate is removed, else sleep visual is blocked
+            creature_addon.auras.erase(std::remove(creature_addon.auras.begin(), creature_addon.auras.end(), SPELL_PERMANENT_FEIGN_DEATH), creature_addon.auras.end());
+            creature->RemoveAura(SPELL_PERMANENT_FEIGN_DEATH);
+
+            creature_addon.auras.push_back(SPELL_PERMANENT_SLEEP_VISUAL);
+            creature->AddAura(SPELL_PERMANENT_SLEEP_VISUAL, creature);
+        }
+
+        creature->SetCreatureAddonDB(creature_addon);
+
+        handler->PSendSysMessage("Creature's sleep animation state successfully toggled (previously active death state will be removed).");
+        return true;
+    }
+
+    static bool HandleNpcSetStateHoverCommand(ChatHandler* handler, char const* args)
+    {
+        Creature* creature = NULL;
+        char* params[2];
+        params[0] = strtok((char*)args, " ");
+        params[1] = strtok(NULL, " ");
+
+        if (!params[0])
+        {
+            handler->PSendSysMessage("Not enough arguments. Syntax: .npc set state hover on/off [$guid]");
+            return true;
+        }
+
+        if (strcmp(params[0], "on") != 0 && strcmp(params[0], "off") != 0)
+        {
+            handler->PSendSysMessage("First argument must be 'on' OR 'off' (without quotes).");
+            return true;
+        }
+
+        bool toggle = strcmp(params[0], "on") == 0;
+
+        if (params[1])
+        {
+            // number or [name] Shift-click form |color|Hcreature:creature_guid|h[name]|h|r
+            char* cId = handler->extractKeyFromLink(params[1], "Hcreature");
+            if (!cId)
+                return false;
+
+            uint32 lowguid = atoi(cId);
+            if (!lowguid)
+                return false;
+
+            if (CreatureData const* cr_data = sObjectMgr->GetCreatureData(lowguid))
+            {
+                creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_UNIT), (Creature*)NULL);
+                if (!creature)
+                    creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_PET), (Creature*)NULL);
+                if (!creature)
+                    creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_VEHICLE), (Creature*)NULL);
+            }
+        }
+        else
+        {
+            creature = handler->getSelectedCreature();
+        }
+
+        if (!creature)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        CreatureAddon& creature_addon = sObjectMgr->GetCreatureAddonContainer()[creature->GetGUIDLow()];
+
+        // remove aura
+        creature_addon.auras.erase(std::remove(creature_addon.auras.begin(), creature_addon.auras.end(), SPELL_PERMANENT_HOVER), creature_addon.auras.end());
+        creature->RemoveAura(SPELL_PERMANENT_HOVER);
+
+        // apply/remove permanent sleep visual
+        if (toggle)
+        {
+            // make sure that deathstate is removed, else this visual is blocked
+            creature_addon.auras.erase(std::remove(creature_addon.auras.begin(), creature_addon.auras.end(), SPELL_PERMANENT_FEIGN_DEATH), creature_addon.auras.end());
+            creature->RemoveAura(SPELL_PERMANENT_FEIGN_DEATH);
+
+            creature_addon.auras.push_back(SPELL_PERMANENT_HOVER);
+            creature->AddAura(SPELL_PERMANENT_HOVER, creature);
+        }
+
+        creature->SetCreatureAddonDB(creature_addon);
+
+        handler->PSendSysMessage("Creature's hover animation state successfully toggled (previously active death state will be removed).");
+        return true;
+    }
+
+    static bool HandleNpcSetEmoteCommand(ChatHandler* handler, char const* args)
+    {
+        Creature* creature = NULL;
+        char* params[2];
+        params[0] = strtok((char*)args, " ");
+        params[1] = strtok(NULL, " ");
+
+        if (!params[0])
+        {
+            handler->PSendSysMessage("Not enough arguments. Syntax: .npc set emote $emoteId [$guid]");
+            return true;
+        }
+
+        if (params[1])
+        {
+            // number or [name] Shift-click form |color|Hcreature:creature_guid|h[name]|h|r
+            char* cId = handler->extractKeyFromLink(params[1], "Hcreature");
+            if (!cId)
+                return false;
+
+            uint32 lowguid = atoi(cId);
+            if (!lowguid)
+                return false;
+
+            if (CreatureData const* cr_data = sObjectMgr->GetCreatureData(lowguid))
+            {
+                creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_UNIT), (Creature*)NULL);
+                if (!creature)
+                    creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_PET), (Creature*)NULL);
+                if (!creature)
+                    creature = sObjectAccessor->GetObjectInWorld(MAKE_NEW_GUID(lowguid, cr_data->id, HIGHGUID_VEHICLE), (Creature*)NULL);
+            }
+        }
+        else
+        {
+            creature = handler->getSelectedCreature();
+        }
+
+        if (!creature)
+        {
+            handler->SendSysMessage(LANG_SELECT_CREATURE);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        uint32 emote_id = atol(params[0]);
+        creature->SetUInt32Value(UNIT_FIELD_NPC_EMOTESTATE, emote_id);
+
+        // update singleton and database
+        CreatureAddon& creature_addon = sObjectMgr->GetCreatureAddonContainer()[creature->GetGUIDLow()];
+        creature_addon.emote = emote_id;
+        creature->SetCreatureAddonDB(creature_addon);
+        
+        handler->PSendSysMessage("Creature's permanent emote state successfully applied.");
+        return true;
     }
 
     static bool HandleNpcSetScaleCommand(ChatHandler* handler, char const* args)
@@ -410,6 +714,10 @@ public:
         return true;
     }
 
+    #pragma endregion
+
+    #pragma region DEFAULT_COMMANDS
+
     //add spawn of creature
     static bool HandleNpcAddCommand(ChatHandler* handler, char const* args)
     {
@@ -489,7 +797,8 @@ public:
         if (!creature->Create(sObjectMgr->GenerateLowGuid(HIGHGUID_UNIT), map, source->GetPhaseMgr().GetPhaseMaskForSpawn(), entry_id, 0, (uint32)teamval, pos_x, pos_y, pos_z, pos_o))
         {
             delete creature;
-            return false;
+            handler->PSendSysMessage("NPC (Entry ID: %u) failed to spawn. Some of its data likely isn't correct or is missing.", entry_id);
+            return true;
         }
 
         // Update creator
@@ -512,7 +821,8 @@ public:
         if (!creature->LoadCreatureFromDB(db_guid, map))
         {
             delete creature;
-            return false;
+            handler->PSendSysMessage("NPC (DB_GUID: %u) failed to load the creature from the DB.", db_guid);
+            return true;
         }
 
         source->SetSelectedCreature(db_guid);
@@ -1434,6 +1744,9 @@ public:
 
         return true;
     }
+
+    #pragma endregion
+
 };
 
 void AddSC_fnpc_commandscript()

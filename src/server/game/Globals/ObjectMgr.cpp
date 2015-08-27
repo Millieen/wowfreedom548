@@ -53,6 +53,15 @@
 #include "WaypointManager.h"
 #include "World.h"
 
+#pragma region FREEDOM_CUSTOM
+
+CreatureAddonContainer& ObjectMgr::GetCreatureAddonContainer()
+{
+    return _creatureAddonStore;
+}
+
+#pragma endregion
+
 ScriptMapMap sSpellScripts;
 ScriptMapMap sEventScripts;
 ScriptMapMap sWaypointScripts;

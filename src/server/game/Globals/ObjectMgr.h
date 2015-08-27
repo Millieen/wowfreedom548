@@ -664,6 +664,12 @@ class ObjectMgr
         ~ObjectMgr();
 
     public:
+        #pragma region FREEDOM_CUSTOM
+
+        CreatureAddonContainer& GetCreatureAddonContainer();
+
+        #pragma endregion
+
         typedef UNORDERED_MAP<uint32, Item*> ItemMap;
 
         typedef UNORDERED_MAP<uint32, Quest*> QuestMap;

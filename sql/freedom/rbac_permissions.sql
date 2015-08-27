@@ -50,7 +50,7 @@ INSERT INTO auth.rbac_permissions (`id`, `name`) VALUES
 (4000, 'Command: goto local/relative'),
 -- [.npc]
 (5000, 'Command: npc disable'), (5001, 'Command: npc enable'), (5002, 'Command: npc select/unselect'),
-(5003, 'Command: npc set scale'),
+(5003, 'Command: npc set scale'), (5004, 'Command: npc set emote'), (5005, 'Command: npc set state'),
 -- [misc]
 (8000, 'Allow adding hidden items through additem command'),
 (8001, 'Command: hideitem'),
@@ -150,7 +150,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 -- [CUSTOM COMMANDS]
 (@MODERATOR, 3000), (@MODERATOR, 3001), (@MODERATOR, 3002), -- gobject: scale/phase/select
 (@MODERATOR, 4000), -- goto local
-(@MODERATOR, 5002), (@MODERATOR, 5003), -- npc: select/unselect, [set] scale
+(@MODERATOR, 5002), (@MODERATOR, 5003), (@MODERATOR, 5004), (@MODERATOR, 5005), -- npc: select/unselect, [set] scale, set emote, set state
 
 -- [191 - Role: [GM2] Gamemaster]
 (@GM, @MODERATOR),

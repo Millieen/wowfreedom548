@@ -55,6 +55,27 @@
 
 #include "Transport.h"
 
+#pragma region FREEDOM_CUSTOM
+
+void Creature::SetCreatureAddonDB(const CreatureAddon& addon) 
+{
+    std::stringstream result;
+    std::copy(addon.auras.begin(), addon.auras.end(), std::ostream_iterator<uint32>(result, " "));
+
+    int index = 0;
+    PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_CREATURE_ADDON_REPLACE);
+    stmt->setUInt32(index++, GetGUIDLow());
+    stmt->setUInt32(index++, addon.path_id);
+    stmt->setUInt32(index++, addon.mount);
+    stmt->setUInt32(index++, addon.bytes1);
+    stmt->setUInt32(index++, addon.bytes2);
+    stmt->setUInt32(index++, addon.emote);
+    stmt->setString(index++, result.str());
+    WorldDatabase.Execute(stmt);
+}
+
+#pragma endregion
+
 TrainerSpell const* TrainerSpellData::Find(uint32 spell_id) const
 {
     TrainerSpellMap::const_iterator itr = spellList.find(spell_id);
