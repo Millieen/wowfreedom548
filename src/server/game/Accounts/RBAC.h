@@ -714,6 +714,8 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_FREEDOM_CUSTOMIZE                      = 1025,
     RBAC_PERM_COMMAND_FREEDOM_RACE_CHANGE                    = 1026,
     RBAC_PERM_COMMAND_FREEDOM_FACTION_CHANGE                 = 1027,
+    RBAC_PERM_COMMAND_FREEDOM_SPELL                          = 1028,
+    RBAC_PERM_COMMAND_FREEDOM_SPELL_MODIFY                   = 1029,
 
     // CUSTOM GM CMDS           2000 <= X < 3000
 

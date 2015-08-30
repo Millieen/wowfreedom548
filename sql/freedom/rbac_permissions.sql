@@ -42,7 +42,7 @@ INSERT INTO auth.rbac_permissions (`id`, `name`) VALUES
 (1018, 'Command: freedom waterwalk'),		(1019, 'Command: freedom fly'),			(1020, 'Command: freedom teleport add/del'),
 (1021, 'Command: freedom morph add/del'), (1022, 'Command: freedom morph list'), (1023, 'Command: freedom ptele list'),
 (1024, 'Command: freedom tele list'),     (1025, 'Command: freedom customize'), (1026, 'Command: freedom racechange'),
-(1027, 'Command: freedom factionchange'),
+(1027, 'Command: freedom factionchange'), (1028, 'Command: freedom spell'), (1029, 'Command: freedom spell add/del'),
 -- [.gobject]
 (3000, 'Command: gobject set scale'), (3001, 'Command: gobject phase'), (3002, 'Command: gobject select'),
 (3003, 'Command: gobject disable'), (3004, 'Command: gobject enable'),
@@ -107,7 +107,9 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@PLAYER, 507), -- help
 
 -- [CUSTOM COMMANDS]
-(@PLAYER, 1000), (@PLAYER, 1001), (@PLAYER, 1002), (@PLAYER, 1003), (@PLAYER, 1004), (@PLAYER, 1005), (@PLAYER, 1006), (@PLAYER, 1007), (@PLAYER, 1008), (@PLAYER, 1009), (@PLAYER, 1010), (@PLAYER, 1011), (@PLAYER, 1012), (@PLAYER, 1013), (@PLAYER, 1014), (@PLAYER, 1015), (@PLAYER, 1016), (@PLAYER, 1017), (@PLAYER, 1018), (@PLAYER, 1019), (@PLAYER, 1022), (@PLAYER, 1023), (@PLAYER, 1024), (@PLAYER, 1025), (@PLAYER, 1026), (@PLAYER, 1027), -- freedom
+(@PLAYER, 1000), (@PLAYER, 1001), (@PLAYER, 1002), (@PLAYER, 1003), (@PLAYER, 1004), (@PLAYER, 1005), (@PLAYER, 1006), (@PLAYER, 1007), (@PLAYER, 1008), (@PLAYER, 1009), -- freedom 
+(@PLAYER, 1010), (@PLAYER, 1011), (@PLAYER, 1012), (@PLAYER, 1013), (@PLAYER, 1014), (@PLAYER, 1015), (@PLAYER, 1016), (@PLAYER, 1017), (@PLAYER, 1018), (@PLAYER, 1019), -- freedom 
+(@PLAYER, 1022), (@PLAYER, 1023), (@PLAYER, 1024), (@PLAYER, 1025), (@PLAYER, 1026), (@PLAYER, 1027), (@PLAYER, 1028), -- freedom
 (@PLAYER, 8005), -- raid/party
 
 -- [198 - Role: [GM1] Moderator, ST]
@@ -204,7 +206,7 @@ INSERT INTO auth.rbac_linked_permissions (`id`, `linkedId`) VALUES
 (@GM, 761), (@GM, 762), (@GM, 763), (@GM, 764), (@GM, 765), (@GM, 766), -- titles
 
 -- [CUSTOM COMMANDS]
-(@GM, 1020), (@GM, 1021), -- freedom tele add/del, freedom morph add/del
+(@GM, 1020), (@GM, 1021), (@GM, 1029), -- freedom tele add/del, freedom morph add/del, freedom spell add/del
 (@GM, 3003), (@GM, 3004), -- gobject disable/enable
 (@GM, 5000), (@GM, 5001), -- npc disable/enable
 (@GM, 8001), (@GM, 8002), -- hide/unhide items for the public (GMLVL 0 and 1 / Players & Moderators)

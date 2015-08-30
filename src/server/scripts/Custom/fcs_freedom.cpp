@@ -41,10 +41,15 @@ public:
                 { NULL, 0, false, NULL, "", NULL }
         };
 
+        static ChatCommand freedomSpellCommandTable[] = {
+                { "list",           rbac::RBAC_PERM_COMMAND_FREEDOM_SPELL,              false, &HandleFreedomSpellListCommand,      "", NULL },
+                { "add",            rbac::RBAC_PERM_COMMAND_FREEDOM_SPELL_MODIFY,       false, &HandleFreedomSpellAddCommand,       "", NULL },
+                { "delete",         rbac::RBAC_PERM_COMMAND_FREEDOM_SPELL_MODIFY,       false, &HandleFreedomSpellDelCommand,       "", NULL },
+                { "",               rbac::RBAC_PERM_COMMAND_FREEDOM_SPELL,              false, &HandleFreedomSpellCommand,          "", NULL },
+                { NULL, 0, false, NULL, "", NULL }
+        };
+
         static ChatCommand freedomCommandTable[] = {
-                { "morph",          rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH,              false, NULL,                                "", freedomMorphCommandTable },
-                { "teleport",       rbac::RBAC_PERM_COMMAND_FREEDOM_TELE,               false, NULL,                                "", freedomTeleportCommandTable },
-                { "pteleport",      rbac::RBAC_PERM_COMMAND_FREEDOM_PTELE,              false, NULL,                                "", freedomPrivateTeleportCommandTable },
                 { "summon",         rbac::RBAC_PERM_COMMAND_FREEDOM_SUMMON,             false, &HandleFreedomSummonCommand,         "", NULL },
                 { "demorph",        rbac::RBAC_PERM_COMMAND_FREEDOM_DEMORPH,            false, &HandleFreedomDemorphCommand,        "", NULL },
                 { "fly",            rbac::RBAC_PERM_COMMAND_FREEDOM_FLY,                false, &HandleFreedomFlyCommand,            "", NULL },
@@ -64,6 +69,10 @@ public:
                 { "customize",      rbac::RBAC_PERM_COMMAND_FREEDOM_CUSTOMIZE,          false, &HandleFreedomCustomizeCommand,      "", NULL },
                 //{ "racechange",     rbac::RBAC_PERM_COMMAND_FREEDOM_RACE_CHANGE,        false, &HandleFreedomRaceChangeCommand,     "", NULL }, race/faction change opcode is not handled yet
                 //{ "factionchange",  rbac::RBAC_PERM_COMMAND_FREEDOM_FACTION_CHANGE,     false, &HandleFreedomFactionChangeCommand,  "", NULL }, race/faction change opcode is not handled yet
+                { "morph",          rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH,              false, NULL,                                "", freedomMorphCommandTable },
+                { "teleport",       rbac::RBAC_PERM_COMMAND_FREEDOM_TELE,               false, NULL,                                "", freedomTeleportCommandTable },
+                { "pteleport",      rbac::RBAC_PERM_COMMAND_FREEDOM_PTELE,              false, NULL,                                "", freedomPrivateTeleportCommandTable },
+                { "spell",          rbac::RBAC_PERM_COMMAND_FREEDOM_SPELL,              false, NULL,                                "", freedomSpellCommandTable },
                 { NULL, 0, false, NULL, "", NULL }
         };
 
@@ -84,6 +93,220 @@ public:
     * |cFFBBBBBB MSG_COLOR_SUBWHITE  - description, normal text.
     * |cFFFF4500 MSG_COLOR_ORANGEY   - tag name, link name, target/source name, for exclamation.
     */
+
+    #pragma region SPELLS
+
+    static bool HandleFreedomSpellCommand(ChatHandler* handler, const char* args)
+    {
+        Unit* target = handler->GetSession()->GetPlayer();
+        Player* source = handler->GetSession()->GetPlayer();
+
+        if (!*args)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom spell: %sPlease specify spell id to cast.\n"
+                "%sSyntax: %s.freedom spell $spellId",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+            return true;
+        }
+
+        uint32 spell_id = handler->extractSpellIdFromLink((char*)args);
+
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_SPELL_SINGLE);
+        stmt->setUInt32(0, spell_id);
+        PreparedQueryResult result_exists = WorldDatabase.Query(stmt);
+
+        if (!result_exists)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom spell: %sSpell not found on public use table.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spell_id);
+        if (!spellInfo)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom spell: %sInvalid spell id. Contact the staff to remove this faulty spell from the list.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        if (result_exists->Fetch()[1].GetUInt8())
+        {
+            target = handler->getSelectedUnit();
+        }
+
+        if (!target)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom spell: %sInvalid target to cast the spell on.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        if (!SpellMgr::IsSpellValid(spellInfo, handler->GetSession()->GetPlayer()))
+        {
+            handler->PSendSysMessage(LANG_COMMAND_SPELL_BROKEN, spell_id);
+            handler->SetSentErrorMessage(true);
+            return false;
+        }
+
+        source->CastSpell(target, spell_id);
+        return true;
+    }
+
+    static bool HandleFreedomSpellListCommand(ChatHandler* handler, const char* args)
+    {
+        std::string spell_name_fragment = "";
+
+        if (*args)
+        {
+            spell_name_fragment += (char*)args;
+        }
+
+        // refine query parameter for LIKE statement
+        replaceAll(spell_name_fragment, "%", "\\%");
+        replaceAll(spell_name_fragment, "_", "\\_");
+        spell_name_fragment = "%" + spell_name_fragment + "%";
+
+        // get exact match
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_SPELL);
+        stmt->setString(0, spell_name_fragment);
+        PreparedQueryResult result = WorldDatabase.Query(stmt);
+
+        if (!result)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom spell list: %sNo spells found.\n"
+                "%sReason: %sNo spells using that string (or blank) was found in freedom spell list.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_RED, MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        do
+        {
+            Field * fields = result->Fetch();
+
+            handler->PSendSysMessage(
+                "%s> %s%u%s - |cffffffff|Hspell:%u|h[%s]|h|r%s (Usable on: %s%s%s)",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, fields[0].GetUInt32(), MSG_COLOR_SUBWHITE, 
+                fields[0].GetUInt32(), fields[2].GetCString(), MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, fields[1].GetUInt8() ? "EVERYONE" : "SELF", MSG_COLOR_SUBWHITE);
+        } while (result->NextRow());
+
+        handler->PSendSysMessage(
+            "%s>>%s Retrieved %s%u%s spell result(s).",
+            MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_ORANGEY, uint32(result->GetRowCount()), MSG_COLOR_SUBWHITE);
+
+        return true;
+    }
+
+    static bool HandleFreedomSpellAddCommand(ChatHandler* handler, const char* args)
+    {
+        char* params[2];
+        params[0] = strtok((char*)args, " ");
+        params[1] = strtok(NULL, " ");
+
+        if (!params[0] || !params[1])
+        {
+            handler->PSendSysMessage(
+                "%s.freedom spell: %sNot enough parameters to add public use spell.\n"
+                "%sSyntax: %s.freedom spell add $spellId y/n\n"
+                "%sNotes: %sSecond parameter sets whether the spell can be cast on other targets/players (y) or just on user/self (n).",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+            return true;
+        }
+
+        uint32 spell_id = handler->extractSpellIdFromLink(params[0]);
+
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_SPELL_SINGLE);
+        stmt->setUInt32(0, spell_id);
+        PreparedQueryResult result_exists = WorldDatabase.Query(stmt);
+
+        if (result_exists)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom spell: %sSpell with such id already exists on the public use table.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        // check if spell is valid
+        SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spell_id);
+        if (!spellInfo)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom spell: %sInvalid spell id.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        if (strcmp(params[1], "y") != 0 && strcmp(params[1], "n") != 0)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom spell add: %sSecond parameter must be 'y' or 'n'.\n"
+                "%sSyntax: %s.freedom spell add $spellId y/n",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+            return true;
+        }
+
+        uint8 allow_targeting = (strcmp(params[1], "y") == 0 ? 1 : 0);
+        std::string spell_name = spellInfo->SpellName;
+        uint32 added_by = handler->GetSession()->GetAccountId();
+
+        stmt = WorldDatabase.GetPreparedStatement(WORLD_INS_FREEDOM_SPELL);
+        stmt->setUInt32(0, spell_id);
+        stmt->setUInt8(1, allow_targeting);
+        stmt->setString(2, spell_name);
+        stmt->setUInt32(3, added_by);
+        WorldDatabase.Execute(stmt);
+
+        handler->PSendSysMessage("%s>>%sSpell was successfully added to public use table.", MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+        return true;
+    }
+
+    static bool HandleFreedomSpellDelCommand(ChatHandler* handler, const char* args)
+    {
+        if (!*args)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom spell delete: %sPlease specify spell id to delete.\n"
+                "%sSyntax: %s.freedom spell delete $spellId",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
+            return true;
+        }
+
+        uint32 spell_id = handler->extractSpellIdFromLink((char*)args);
+
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_FREEDOM_SPELL_SINGLE);
+        stmt->setUInt32(0, spell_id);
+        PreparedQueryResult result_exists = WorldDatabase.Query(stmt);
+
+        if (!result_exists)
+        {
+            handler->PSendSysMessage(
+                "%s.freedom spell: %sSpell with such id does not exist on the public use table.",
+                MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+            return true;
+        }
+
+        stmt = WorldDatabase.GetPreparedStatement(WORLD_DEL_FREEDOM_SPELL);
+        stmt->setUInt32(0, spell_id);
+        WorldDatabase.Execute(stmt);
+
+        handler->PSendSysMessage("%s>>%sSpell was successfully removed from public use.", MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+        return true;
+    }
+
+    static bool HandleFreedomUnAuraCommand(ChatHandler* handler, const char* /*args*/) {
+        Player* source = handler->GetSession()->GetPlayer();
+        source->RemoveAllAuras();
+        handler->PSendSysMessage("%s>>%sAll auras/passive/spell effects are removed from your character.", MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
+        return true;
+    }
+
+    #pragma endregion
 
     #pragma region UTILITIES
     static bool HandleFreedomCustomizeCommand(ChatHandler* handler, const char* /*args*/) {
@@ -139,13 +362,6 @@ public:
         Player* source = handler->GetSession()->GetPlayer();
         source->DurabilityRepairAll(false, 0, false);
         handler->PSendSysMessage("%s>>%s All your character's items are repaired.", MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
-        return true;
-    }
-
-    static bool HandleFreedomUnAuraCommand(ChatHandler* handler, const char* /*args*/) {
-        Player* source = handler->GetSession()->GetPlayer();
-        source->RemoveAllAuras();
-        handler->PSendSysMessage("%s>>%sAll auras/passive/spell effects are removed from your character.", MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE);
         return true;
     }
 

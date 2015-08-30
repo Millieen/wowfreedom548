@@ -1,0 +1,9 @@
+CREATE TABLE `freedom_spell` (
+	`spell_id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`allow_targeting` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
+	`name` VARCHAR(255) NOT NULL DEFAULT '',
+	`added_by` INT(10) UNSIGNED NOT NULL DEFAULT '0',
+	PRIMARY KEY (`spell_id`)
+)
+ENGINE=InnoDB
+;
