@@ -50,6 +50,7 @@ public:
         };
 
         static ChatCommand freedomCommandTable[] = {
+                { "cast",           rbac::RBAC_PERM_COMMAND_FREEDOM_SPELL,              false, &HandleFreedomSpellCommand,          "", NULL },
                 { "summon",         rbac::RBAC_PERM_COMMAND_FREEDOM_SUMMON,             false, &HandleFreedomSummonCommand,         "", NULL },
                 { "demorph",        rbac::RBAC_PERM_COMMAND_FREEDOM_DEMORPH,            false, &HandleFreedomDemorphCommand,        "", NULL },
                 { "fly",            rbac::RBAC_PERM_COMMAND_FREEDOM_FLY,                false, &HandleFreedomFlyCommand,            "", NULL },
@@ -64,12 +65,12 @@ public:
                 { "waterwalk",      rbac::RBAC_PERM_COMMAND_FREEDOM_WATERWALK,          false, &HandleFreedomWaterwalkCommand,      "", NULL },
                 { "fix",            rbac::RBAC_PERM_COMMAND_FREEDOM_FIX,                false, &HandleFreedomFixCommand,            "", NULL },
                 //{ "mailbox",        rbac::RBAC_PERM_COMMAND_FREEDOM_MAILBOX,            false, &HandleFreedomMailboxCommand,        "", NULL }, TODO: implement mailbox command when SMSG_SHOW_MAILBOX or similar opcode is implemented
+                { "morph",          rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH,              false, NULL,                                "", freedomMorphCommandTable },
                 { "money",          rbac::RBAC_PERM_COMMAND_FREEDOM_MONEY,              false, &HandleFreedomMoneyCommand,          "", NULL },
                 { "bank",           rbac::RBAC_PERM_COMMAND_FREEDOM_BANK,               false, &HandleFreedomBankCommand,           "", NULL },
                 { "customize",      rbac::RBAC_PERM_COMMAND_FREEDOM_CUSTOMIZE,          false, &HandleFreedomCustomizeCommand,      "", NULL },
                 //{ "racechange",     rbac::RBAC_PERM_COMMAND_FREEDOM_RACE_CHANGE,        false, &HandleFreedomRaceChangeCommand,     "", NULL }, race/faction change opcode is not handled yet
                 //{ "factionchange",  rbac::RBAC_PERM_COMMAND_FREEDOM_FACTION_CHANGE,     false, &HandleFreedomFactionChangeCommand,  "", NULL }, race/faction change opcode is not handled yet
-                { "morph",          rbac::RBAC_PERM_COMMAND_FREEDOM_MORPH,              false, NULL,                                "", freedomMorphCommandTable },
                 { "teleport",       rbac::RBAC_PERM_COMMAND_FREEDOM_TELE,               false, NULL,                                "", freedomTeleportCommandTable },
                 { "pteleport",      rbac::RBAC_PERM_COMMAND_FREEDOM_PTELE,              false, NULL,                                "", freedomPrivateTeleportCommandTable },
                 { "spell",          rbac::RBAC_PERM_COMMAND_FREEDOM_SPELL,              false, NULL,                                "", freedomSpellCommandTable },

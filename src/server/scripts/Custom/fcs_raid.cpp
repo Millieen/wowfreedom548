@@ -21,20 +21,21 @@ public:
 
         static ChatCommand raidCommandTable[] =
         {
+            { "list",               rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidListCommand,              "", NULL },
+            { "summon",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidSummonAllCommand,         "", NULL },
             { "create",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidCreateCommand,            "", NULL },
             { "disband",            rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidDisbandCommand,           "", NULL },
             { "invite",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidInviteCommand,            "", NULL },
-            { "accept",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidAcceptCommand,            "", NULL },
-            { "leave",              rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidLeaveCommand,             "", NULL },
+            { "accept",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidAcceptCommand,            "", NULL },            
             { "kick",               rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidKickCommand,              "", NULL },
             { "move",               rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidMoveCommand,              "", NULL },
             { "promote",            rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidPromoteCommand,           "", NULL },
             { "demote",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidDemoteCommand,            "", NULL },
+            { "leave",              rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidLeaveCommand,             "", NULL },
             { "leader",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidLeaderCommand,            "", NULL },
-            { "list",               rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidListCommand,              "", NULL },
             { "say",                rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidSayCommand,               "", NULL },
             { "warning",            rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidWarningCommand,           "", NULL },
-            { "unlock",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidUnlockCommand,           "", NULL },
+            { "unlock",             rbac::RBAC_PERM_COMMAND_FREEDOM_RAID,               false, &HandleRaidUnlockCommand,            "", NULL },
             { NULL, 0, false, NULL, "", NULL }
         };
 
@@ -49,6 +50,75 @@ public:
     }
 
     #pragma region RAID COMMAND REGION
+
+    static bool HandleRaidSummonAllCommand(ChatHandler* handler, char const* /*args*/)
+    {
+        Player* source = handler->GetSession()->GetPlayer();
+        uint32 source_guid = source->GetGUIDLow();
+
+        if (!FRaid::IsInRaid(source_guid))
+        {
+            handler->PSendSysMessage("You are not in a raid party.");
+            return true;
+        }
+
+        if (!FRaid::IsAssistant(source_guid))
+        {
+            handler->PSendSysMessage("You need to have assistant permissions of the raid to perform this command.");
+            return true;
+        }
+
+        uint32 leader_guid = FRaid::GetLeaderGuid(source_guid);
+
+        // begin member transfer to the new raid group
+        PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_RAID_MEMBERS);
+        stmt->setUInt32(0, leader_guid);
+        PreparedQueryResult result = WorldDatabase.Query(stmt);
+
+        handler->PSendSysMessage("Summoning raid players...");
+
+        do
+        {
+            Field* fields = result->Fetch();
+            uint32 raid_member_guid = fields[1].GetUInt32();
+
+            Player* target = sObjectMgr->GetPlayerByLowGUID(raid_member_guid);
+
+            if (!target || target == source || !target->GetSession())
+                continue;
+
+            // check online security
+            if (handler->HasLowerSecurity(target, 0))
+                return false;
+
+            std::string plNameLink = handler->GetNameLink(target);
+
+            if (target->IsBeingTeleported())
+            {
+                handler->PSendSysMessage(LANG_IS_TELEPORTED, plNameLink.c_str());
+                handler->SetSentErrorMessage(true);
+                return false;
+            }
+
+            handler->PSendSysMessage(LANG_SUMMONING, plNameLink.c_str(), "");
+            if (handler->needReportToTarget(target))
+                ChatHandler(target->GetSession()).PSendSysMessage(LANG_SUMMONED_BY, handler->GetNameLink().c_str());
+
+            // stop flight if need
+            if (target->IsInFlight())
+            {
+                target->GetMotionMaster()->MovementExpired();
+                target->CleanupAfterTaxiFlight();
+            }
+            // save only in non-flight case
+            else
+                target->SaveRecallPosition();
+
+            target->TeleportTo(source->GetMapId(), source->GetPositionX(), source->GetPositionY(), source->GetPositionZ(), target->GetOrientation());
+        } while (result->NextRow());
+
+        return true;
+    }
 
     static bool HandleRaidCreateCommand(ChatHandler* handler, char const* args)
     {
