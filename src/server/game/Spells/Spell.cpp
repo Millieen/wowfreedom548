@@ -5202,33 +5202,33 @@ void Spell::SendResurrectRequest(Player* target)
                                ? ""
                                : m_caster->GetNameForLocaleIdx(target->GetSession()->GetSessionDbLocaleIndex()));
 
-    ObjectGuid Guid = m_caster->GetGUID();
-    WorldPacket data(SMSG_RESURRECT_REQUEST, (8+4+sentName.size()+1+1+1+4));
-
+    ObjectGuid guid = m_caster->GetGUID();
+    WorldPacket data(SMSG_RESURRECT_REQUEST, (8 + 4 + sentName.size() + 1 + 1 + 1 + 4));
     data << uint32(sentName.size() + 1);
     data << uint32(m_spellInfo->Id);
-    data << uint32(0); // unknown
+    data << uint32(0);
 
-    data.WriteBit(Guid[3]);
-    data << uint8(0); // null terminator
-    data << uint8(m_caster->GetTypeId() == TYPEID_PLAYER ? 0 : 1); // "you'll be afflicted with resurrection sickness"
-    data.WriteBit(Guid[1]);
-    data.WriteBit(Guid[5]);
-    data.WriteBit(Guid[2]);
-    data.WriteBit(Guid[6]);
-    data.WriteBit(Guid[0]);
-    data.WriteBit(Guid[4]);
-    data.WriteBit(Guid[7]);
+    data.WriteBit(guid[3]);
+    data.WriteBit(m_caster->GetTypeId() == TYPEID_PLAYER ? 0 : 1);
+    data.WriteBit(false);
+    data.WriteBit(guid[1]);
+    data.WriteBit(guid[5]);
+    data.WriteBit(guid[2]);
+    data.WriteBit(guid[6]);
+    data.WriteBit(guid[0]);
+    data.WriteBit(guid[4]);
+    data.WriteBit(guid[7]);
+    data.WriteBits(sentName.size(), 6);
 
-    data.WriteByteSeq(Guid[7]);
-    data.WriteByteSeq(Guid[3]);
-    data.WriteByteSeq(Guid[5]);
-    data << sentName;
-    data.WriteByteSeq(Guid[2]);
-    data.WriteByteSeq(Guid[4]);
-    data.WriteByteSeq(Guid[1]);
-    data.WriteByteSeq(Guid[6]);
-    data.WriteByteSeq(Guid[0]);
+    data.WriteByteSeq(guid[7]);
+    data.WriteByteSeq(guid[3]);
+    data.WriteByteSeq(guid[5]);
+    data.WriteString(sentName);
+    data.WriteByteSeq(guid[2]);
+    data.WriteByteSeq(guid[4]);
+    data.WriteByteSeq(guid[1]);
+    data.WriteByteSeq(guid[6]);
+    data.WriteByteSeq(guid[0]);
 
     target->GetSession()->SendPacket(&data);
 }
