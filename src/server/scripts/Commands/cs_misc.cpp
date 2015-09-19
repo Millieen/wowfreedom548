@@ -283,77 +283,12 @@ public:
         if (target)
         {
             // check online security
-            if (handler->HasLowerSecurity(target, 0))
-                return false;
+            //if (handler->HasLowerSecurity(target, 0))
+            //    return false;
 
             std::string chrNameLink = handler->playerLink(targetName);
 
             Map* map = target->GetMap();
-            if (map->IsBattlegroundOrArena())
-            {
-                // only allow if gm mode is on
-                if (!_player->IsGameMaster())
-                {
-                    handler->PSendSysMessage(LANG_CANNOT_GO_TO_BG_GM, chrNameLink.c_str());
-                    handler->SetSentErrorMessage(true);
-                    return false;
-                }
-                // if both players are in different bgs
-                else if (_player->GetBattlegroundId() && _player->GetBattlegroundId() != target->GetBattlegroundId())
-                    _player->LeaveBattleground(false); // Note: should be changed so _player gets no Deserter debuff
-
-                // all's well, set bg id
-                // when porting out from the bg, it will be reset to 0
-                _player->SetBattlegroundId(target->GetBattlegroundId(), target->GetBattlegroundTypeId());
-                // remember current position as entry point for return at bg end teleportation
-                if (!_player->GetMap()->IsBattlegroundOrArena())
-                    _player->SetBattlegroundEntryPoint();
-            }
-            else if (map->IsDungeon())
-            {
-                // we have to go to instance, and can go to player only if:
-                //   1) we are in his group (either as leader or as member)
-                //   2) we are not bound to any group and have GM mode on
-                if (_player->GetGroup())
-                {
-                    // we are in group, we can go only if we are in the player group
-                    if (_player->GetGroup() != target->GetGroup())
-                    {
-                        handler->PSendSysMessage(LANG_CANNOT_GO_TO_INST_PARTY, chrNameLink.c_str());
-                        handler->SetSentErrorMessage(true);
-                        return false;
-                    }
-                }
-                else
-                {
-                    // we are not in group, let's verify our GM mode
-                    if (!_player->IsGameMaster())
-                    {
-                        handler->PSendSysMessage(LANG_CANNOT_GO_TO_INST_GM, chrNameLink.c_str());
-                        handler->SetSentErrorMessage(true);
-                        return false;
-                    }
-                }
-
-                // if the player or the player's group is bound to another instance
-                // the player will not be bound to another one
-                InstancePlayerBind* bind = _player->GetBoundInstance(target->GetMapId(), target->GetDifficulty(map->IsRaid()));
-                if (!bind)
-                {
-                    Group* group = _player->GetGroup();
-                    // if no bind exists, create a solo bind
-                    InstanceGroupBind* gBind = group ? group->GetBoundInstance(target) : NULL;                // if no bind exists, create a solo bind
-                    if (!gBind)
-                        if (InstanceSave* save = sInstanceSaveMgr->GetInstanceSave(target->GetInstanceId()))
-                            _player->BindToInstance(save, !save->CanReset());
-                }
-
-                if (map->IsRaid())
-                    _player->SetRaidDifficulty(target->GetRaidDifficulty());
-                else
-                    _player->SetDungeonDifficulty(target->GetDungeonDifficulty());
-            }
-
             handler->PSendSysMessage(LANG_APPEARING_AT, chrNameLink.c_str());
 
             // stop flight if need
@@ -367,10 +302,8 @@ public:
                 _player->SaveRecallPosition();
 
             // to point to see at target with same orientation
-            float x, y, z;
-            target->GetContactPoint(_player, x, y, z);
 
-            _player->TeleportTo(target->GetMapId(), x, y, z, _player->GetAngle(target), TELE_TO_GM_MODE);
+            _player->TeleportTo(target->GetMapId(), target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), _player->GetAngle(target), TELE_TO_GM_MODE);
             _player->SetPhaseMask(target->GetPhaseMask(), true);
         }
         else
@@ -436,47 +369,6 @@ public:
                 return false;
             }
 
-            Map* map = handler->GetSession()->GetPlayer()->GetMap();
-
-            if (map->IsBattlegroundOrArena())
-            {
-                // only allow if gm mode is on
-                if (!_player->IsGameMaster())
-                {
-                    handler->PSendSysMessage(LANG_CANNOT_GO_TO_BG_GM, nameLink.c_str());
-                    handler->SetSentErrorMessage(true);
-                    return false;
-                }
-                // if both players are in different bgs
-                else if (target->GetBattlegroundId() && handler->GetSession()->GetPlayer()->GetBattlegroundId() != target->GetBattlegroundId())
-                    target->LeaveBattleground(false); // Note: should be changed so target gets no Deserter debuff
-
-                // all's well, set bg id
-                // when porting out from the bg, it will be reset to 0
-                target->SetBattlegroundId(handler->GetSession()->GetPlayer()->GetBattlegroundId(), handler->GetSession()->GetPlayer()->GetBattlegroundTypeId());
-                // remember current position as entry point for return at bg end teleportation
-                if (!target->GetMap()->IsBattlegroundOrArena())
-                    target->SetBattlegroundEntryPoint();
-            }
-            else if (map->IsDungeon())
-            {
-                Map* destMap = target->GetMap();
-
-                if (destMap->Instanceable() && destMap->GetInstanceId() != map->GetInstanceId())
-                    target->UnbindInstance(map->GetInstanceId(), target->GetDungeonDifficulty(), true);
-
-                // we are in an instance, and can only summon players in our group with us as leader
-                if (!handler->GetSession()->GetPlayer()->GetGroup() || !target->GetGroup() ||
-                    (target->GetGroup()->GetLeaderGUID() != handler->GetSession()->GetPlayer()->GetGUID()) ||
-                    (handler->GetSession()->GetPlayer()->GetGroup()->GetLeaderGUID() != handler->GetSession()->GetPlayer()->GetGUID()))
-                    // the last check is a bit excessive, but let it be, just in case
-                {
-                    handler->PSendSysMessage(LANG_CANNOT_SUMMON_TO_INST, nameLink.c_str());
-                    handler->SetSentErrorMessage(true);
-                    return false;
-                }
-            }
-
             handler->PSendSysMessage(LANG_SUMMONING, nameLink.c_str(), "");
             if (handler->needReportToTarget(target))
                 ChatHandler(target->GetSession()).PSendSysMessage(LANG_SUMMONED_BY, handler->playerLink(_player->GetName()).c_str());
@@ -492,9 +384,7 @@ public:
                 target->SaveRecallPosition();
 
             // before GM
-            float x, y, z;
-            handler->GetSession()->GetPlayer()->GetClosePoint(x, y, z, target->GetObjectSize());
-            target->TeleportTo(handler->GetSession()->GetPlayer()->GetMapId(), x, y, z, target->GetOrientation());
+            target->TeleportTo(_player->GetMapId(), _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), target->GetOrientation());
             target->SetPhaseMask(handler->GetSession()->GetPlayer()->GetPhaseMask(), true);
         }
         else
