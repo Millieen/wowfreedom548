@@ -625,7 +625,7 @@ Spell::~Spell()
     {
         // Clean the reference to avoid later crash.
         // If this error is repeating, we may have to add an ASSERT to better track down how we get into this case.
-        TC_LOG_ERROR("spells", "SPELL: deleting spell for spell ID %u. However, spell still referenced.", m_spellInfo->Id);
+        TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::~Spell(): deleting spell for spell ID %u. However, spell still referenced.", m_spellInfo->Id);
         *m_selfContainer = NULL;
     }
 
@@ -884,7 +884,8 @@ void Spell::SelectEffectImplicitTargets(SpellEffIndex effIndex, SpellImplicitTar
                             m_targets.SetSrc(*m_caster);
                             break;
                         default:
-                            ASSERT(false && "Spell::SelectEffectImplicitTargets: received not implemented select target reference type for TARGET_TYPE_OBJECT_SRC");
+                            TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectEffectImplicitTargets: received not implemented select target reference type for TARGET_TYPE_OBJECT_SRC (spell id: %u, reference type: %u)", m_spellInfo->Id, targetType.GetReferenceType());
+                            //ASSERT(false && "Spell::SelectEffectImplicitTargets: received not implemented select target reference type for TARGET_TYPE_OBJECT_SRC");
                             break;
                     }
                     break;
@@ -901,7 +902,8 @@ void Spell::SelectEffectImplicitTargets(SpellEffIndex effIndex, SpellImplicitTar
                              SelectImplicitDestDestTargets(effIndex, targetType);
                              break;
                          default:
-                             ASSERT(false && "Spell::SelectEffectImplicitTargets: received not implemented select target reference type for TARGET_TYPE_OBJECT_DEST");
+                             TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectEffectImplicitTargets: received not implemented select target reference type for TARGET_TYPE_OBJECT_DEST (spell id: %u, reference type: %u)", m_spellInfo->Id, targetType.GetReferenceType());
+                             //ASSERT(false && "Spell::SelectEffectImplicitTargets: received not implemented select target reference type for TARGET_TYPE_OBJECT_DEST");
                              break;
                      }
                      break;
@@ -915,7 +917,8 @@ void Spell::SelectEffectImplicitTargets(SpellEffIndex effIndex, SpellImplicitTar
                             SelectImplicitTargetObjectTargets(effIndex, targetType);
                             break;
                         default:
-                            ASSERT(false && "Spell::SelectEffectImplicitTargets: received not implemented select target reference type for TARGET_TYPE_OBJECT");
+                            TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectEffectImplicitTargets: received not implemented select target reference type for TARGET_TYPE_OBJECT (spell id: %u, reference type: %u)", m_spellInfo->Id, targetType.GetReferenceType());
+                            //ASSERT(false && "Spell::SelectEffectImplicitTargets: received not implemented select target reference type for TARGET_TYPE_OBJECT");
                             break;
                     }
                     break;
@@ -925,7 +928,7 @@ void Spell::SelectEffectImplicitTargets(SpellEffIndex effIndex, SpellImplicitTar
             TC_LOG_DEBUG("spells", "SPELL: target type %u, found in spellID %u, effect %u is not implemented yet!", m_spellInfo->Id, effIndex, targetType.GetTarget());
             break;
         default:
-            TC_LOG_ERROR("spells", "Spell::SelectEffectImplicitTargets: received not implemented select target category (spellId: %u) (spellSelectionCategory: %u)", m_spellInfo->Id, targetType.GetSelectionCategory());
+            TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectEffectImplicitTargets: received not implemented select target category (spell id: %u, target category: %u)", m_spellInfo->Id, targetType.GetSelectionCategory());
             //ASSERT(false && "Spell::SelectEffectImplicitTargets: received not implemented select target category");
             break;
     }
@@ -935,7 +938,8 @@ void Spell::SelectImplicitChannelTargets(SpellEffIndex effIndex, SpellImplicitTa
 {
     if (targetType.GetReferenceType() != TARGET_REFERENCE_TYPE_CASTER)
     {
-        ASSERT(false && "Spell::SelectImplicitChannelTargets: received not implemented target reference type");
+        TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectImplicitChannelTargets: received not implemented target reference type (spell id: %u, reference type: %u)", m_spellInfo->Id, targetType.GetReferenceType());
+        //ASSERT(false && "Spell::SelectImplicitChannelTargets: received not implemented target reference type");
         return;
     }
 
@@ -974,7 +978,8 @@ void Spell::SelectImplicitChannelTargets(SpellEffIndex effIndex, SpellImplicitTa
             m_targets.SetDst(*channeledSpell->GetCaster());
             break;
         default:
-            ASSERT(false && "Spell::SelectImplicitChannelTargets: received not implemented target type");
+            TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectImplicitChannelTargets: received not implemented target type (spell id: %u, target type: %u)", m_spellInfo->Id, targetType.GetTarget());
+            //ASSERT(false && "Spell::SelectImplicitChannelTargets: received not implemented target type");
             break;
     }
 }
@@ -983,7 +988,8 @@ void Spell::SelectImplicitNearbyTargets(SpellEffIndex effIndex, SpellImplicitTar
 {
     if (targetType.GetReferenceType() != TARGET_REFERENCE_TYPE_CASTER)
     {
-        ASSERT(false && "Spell::SelectImplicitNearbyTargets: received not implemented target reference type");
+        TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectImplicitNearbyTargets: received not implemented target reference type (spell id: %u, reference type: %u)", m_spellInfo->Id, targetType.GetReferenceType());
+        //ASSERT(false && "Spell::SelectImplicitNearbyTargets: received not implemented target reference type");
         return;
     }
 
@@ -1004,7 +1010,8 @@ void Spell::SelectImplicitNearbyTargets(SpellEffIndex effIndex, SpellImplicitTar
             range = m_spellInfo->GetMaxRange(m_spellInfo->IsPositive(), m_caster, this);
             break;
         default:
-            ASSERT(false && "Spell::SelectImplicitNearbyTargets: received not implemented selection check type");
+            TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectImplicitNearbyTargets: received not implemented selection check type (spell id: %u, check type: %u)", m_spellInfo->Id, targetType.GetCheckType());
+            //ASSERT(false && "Spell::SelectImplicitNearbyTargets: received not implemented selection check type");
             break;
     }
 
@@ -1060,7 +1067,8 @@ void Spell::SelectImplicitNearbyTargets(SpellEffIndex effIndex, SpellImplicitTar
             m_targets.SetDst(*target);
             break;
         default:
-            ASSERT(false && "Spell::SelectImplicitNearbyTargets: received not implemented target object type");
+            TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectImplicitNearbyTargets: received not implemented target object type (spell id: %u, object type: %u)", m_spellInfo->Id, targetType.GetObjectType());
+            //ASSERT(false && "Spell::SelectImplicitNearbyTargets: received not implemented target object type");
             break;
     }
 
@@ -1071,7 +1079,8 @@ void Spell::SelectImplicitConeTargets(SpellEffIndex effIndex, SpellImplicitTarge
 {
     if (targetType.GetReferenceType() != TARGET_REFERENCE_TYPE_CASTER)
     {
-        ASSERT(false && "Spell::SelectImplicitConeTargets: received not implemented target reference type");
+        TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectImplicitConeTargets: received not implemented target reference type (spell id: %u, reference type: %u)", m_spellInfo->Id, targetType.GetReferenceType());
+        //ASSERT(false && "Spell::SelectImplicitConeTargets: received not implemented target reference type");
         return;
     }
     std::list<WorldObject*> targets;
@@ -1144,7 +1153,8 @@ void Spell::SelectImplicitAreaTargets(SpellEffIndex effIndex, SpellImplicitTarge
             break;
         }
         default:
-            ASSERT(false && "Spell::SelectImplicitAreaTargets: received not implemented target reference type");
+            TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectImplicitAreaTargets: received not implemented target reference type (spell id: %u, reference type: %u)", m_spellInfo->Id, targetType.GetReferenceType());
+            //ASSERT(false && "Spell::SelectImplicitAreaTargets: received not implemented target reference type");
             return;
     }
     if (!referer)
@@ -1165,7 +1175,8 @@ void Spell::SelectImplicitAreaTargets(SpellEffIndex effIndex, SpellImplicitTarge
             center = referer;
             break;
          default:
-             ASSERT(false && "Spell::SelectImplicitAreaTargets: received not implemented target reference type");
+             TC_LOG_ERROR("spells", "[SPELL ERROR] Spell::SelectImplicitAreaTargets: received not implemented target reference type (spell id: %u, reference type: %u)", m_spellInfo->Id, targetType.GetReferenceType());
+             //ASSERT(false && "Spell::SelectImplicitAreaTargets: received not implemented target reference type");
              return;
     }
     std::list<WorldObject*> targets;
