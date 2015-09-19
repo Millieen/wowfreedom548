@@ -106,7 +106,7 @@ public:
         {
             handler->PSendSysMessage(
                 "%s.freedom spell: %sPlease specify spell id to cast.\n"
-                "%sSyntax: %s.freedom spell $spellId",
+                "%sSyntax: %s.freedom spell/cast $spellId",
                 MSG_COLOR_CHOCOLATE, MSG_COLOR_SUBWHITE, MSG_COLOR_CHOCOLATE, MSG_COLOR_ORANGEY);
             return true;
         }

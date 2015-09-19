@@ -431,6 +431,7 @@ public:
             if (handler->HasLowerSecurity(player, 0, false))
                 return false;
 
+        target->SetUInt32Value(UNIT_FIELD_NPC_EMOTESTATE, 0x0);
         if (target->IsAlive())
         {
             if (sWorld->getBoolConfig(CONFIG_DIE_COMMAND_MODE))

@@ -305,6 +305,7 @@ public:
 
         // remove aura
         creature_addon.auras.erase(std::remove(creature_addon.auras.begin(), creature_addon.auras.end(), SPELL_PERMANENT_FEIGN_DEATH), creature_addon.auras.end());
+        creature->SetUInt32Value(UNIT_FIELD_NPC_EMOTESTATE, 0x0);
         creature->RemoveAura(SPELL_PERMANENT_FEIGN_DEATH);
 
         // apply aura if executor turned it on
