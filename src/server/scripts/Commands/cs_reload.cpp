@@ -172,6 +172,8 @@ public:
         return true;
     }
 
+    #pragma region RELOAD_ALL
+
     static bool HandleReloadAllCommand(ChatHandler* handler, const char* /*args*/)
     {
         HandleReloadSkillFishingBaseLevelCommand(handler, "");
@@ -318,6 +320,8 @@ public:
         return true;
     }
 
+    #pragma endregion
+
     static bool HandleReloadConfigCommand(ChatHandler* handler, const char* /*args*/)
     {
         TC_LOG_INFO("misc", "Re-Loading config settings...");
@@ -419,100 +423,222 @@ public:
                 continue;
             }
 
-            CreatureTemplate* cInfo = const_cast<CreatureTemplate*>(sObjectMgr->GetCreatureTemplate(entry));
-            if (!cInfo)
-            {
-                handler->PSendSysMessage(LANG_COMMAND_CREATURESTORAGE_NOTFOUND, entry);
-                continue;
-            }
+            CreatureTemplate& cInfo = sObjectMgr->GetCreatureTemplateContainer()[entry];
+            //if (!cInfo)
+            //{
+            //    handler->PSendSysMessage(LANG_COMMAND_CREATURESTORAGE_NOTFOUND, entry);
+            //    continue;
+            //}
+
+            #pragma region RELOAD_CREATURE_TEMPLATE_ENTRY
 
             TC_LOG_INFO("misc", "Reloading creature template entry %u", entry);
 
             Field* fields = result->Fetch();
 
+            cInfo.Entry = entry;
+
             for (uint8 i = 0; i < MAX_DIFFICULTY - 1; ++i)
-                cInfo->DifficultyEntry[i] = fields[0 + i].GetUInt32();
+                cInfo.DifficultyEntry[i] = fields[0 + i].GetUInt32();
 
             for (uint8 i = 0; i < MAX_KILL_CREDIT; ++i)
-                cInfo->KillCredit[i] = fields[3 + i].GetUInt32();
+                cInfo.KillCredit[i] = fields[3 + i].GetUInt32();
 
-            cInfo->Modelid1           = fields[5].GetUInt32();
-            cInfo->Modelid2           = fields[6].GetUInt32();
-            cInfo->Modelid3           = fields[7].GetUInt32();
-            cInfo->Modelid4           = fields[8].GetUInt32();
-            cInfo->Name               = fields[9].GetString();
-            cInfo->SubName            = fields[10].GetString();
-            cInfo->IconName           = fields[11].GetString();
-            cInfo->GossipMenuId       = fields[12].GetUInt32();
-            cInfo->minlevel           = fields[13].GetUInt8();
-            cInfo->maxlevel           = fields[14].GetUInt8();
-            cInfo->expansion          = fields[15].GetUInt16();
-            cInfo->expansionUnknown   = fields[16].GetUInt16();
-            cInfo->faction_A          = fields[17].GetUInt16();
-            cInfo->faction_H          = fields[18].GetUInt16();
-            cInfo->npcflag            = fields[19].GetUInt32();
-            cInfo->speed_walk         = fields[20].GetFloat();
-            cInfo->speed_run          = fields[21].GetFloat();
-            cInfo->scale              = fields[22].GetFloat();
-            cInfo->rank               = fields[23].GetUInt8();
-            cInfo->mindmg             = fields[24].GetFloat();
-            cInfo->maxdmg             = fields[25].GetFloat();
-            cInfo->dmgschool          = fields[26].GetUInt8();
-            cInfo->attackpower        = fields[27].GetUInt32();
-            cInfo->dmg_multiplier     = fields[28].GetFloat();
-            cInfo->baseattacktime     = fields[29].GetUInt32();
-            cInfo->rangeattacktime    = fields[30].GetUInt32();
-            cInfo->unit_class         = fields[31].GetUInt8();
-            cInfo->unit_flags         = fields[32].GetUInt32();
-            cInfo->unit_flags2        = fields[33].GetUInt32();
-            cInfo->dynamicflags       = fields[34].GetUInt32();
-            cInfo->family             = fields[35].GetUInt8();
-            cInfo->trainer_type       = fields[36].GetUInt8();
-            cInfo->trainer_class      = fields[37].GetUInt8();
-            cInfo->trainer_race       = fields[38].GetUInt8();
-            cInfo->minrangedmg        = fields[39].GetFloat();
-            cInfo->maxrangedmg        = fields[40].GetFloat();
-            cInfo->rangedattackpower  = fields[41].GetUInt16();
-            cInfo->type               = fields[42].GetUInt8();
-            cInfo->type_flags         = fields[43].GetUInt32();
-            cInfo->type_flags2        = fields[44].GetUInt32();
-            cInfo->lootid             = fields[45].GetUInt32();
-            cInfo->pickpocketLootId   = fields[46].GetUInt32();
-            cInfo->SkinLootId         = fields[47].GetUInt32();
+            cInfo.Modelid1           = fields[5].GetUInt32();
+            cInfo.Modelid2           = fields[6].GetUInt32();
+            cInfo.Modelid3           = fields[7].GetUInt32();
+            cInfo.Modelid4           = fields[8].GetUInt32();
+            cInfo.Name               = fields[9].GetString();
+            cInfo.SubName            = fields[10].GetString();
+            cInfo.IconName           = fields[11].GetString();
+            cInfo.GossipMenuId       = fields[12].GetUInt32();
+            cInfo.minlevel           = fields[13].GetUInt8();
+            cInfo.maxlevel           = fields[14].GetUInt8();
+            cInfo.expansion          = fields[15].GetUInt16();
+            cInfo.expansionUnknown   = fields[16].GetUInt16();
+            cInfo.faction_A          = fields[17].GetUInt16();
+            cInfo.faction_H          = fields[18].GetUInt16();
+            cInfo.npcflag            = fields[19].GetUInt32();
+            cInfo.speed_walk         = fields[20].GetFloat();
+            cInfo.speed_run          = fields[21].GetFloat();
+            cInfo.scale              = fields[22].GetFloat();
+            cInfo.rank               = fields[23].GetUInt8();
+            cInfo.mindmg             = fields[24].GetFloat();
+            cInfo.maxdmg             = fields[25].GetFloat();
+            cInfo.dmgschool          = fields[26].GetUInt8();
+            cInfo.attackpower        = fields[27].GetUInt32();
+            cInfo.dmg_multiplier     = fields[28].GetFloat();
+            cInfo.baseattacktime     = fields[29].GetUInt32();
+            cInfo.rangeattacktime    = fields[30].GetUInt32();
+            cInfo.unit_class         = fields[31].GetUInt8();
+            cInfo.unit_flags         = fields[32].GetUInt32();
+            cInfo.unit_flags2        = fields[33].GetUInt32();
+            cInfo.dynamicflags       = fields[34].GetUInt32();
+            cInfo.family             = fields[35].GetUInt8();
+            cInfo.trainer_type       = fields[36].GetUInt8();
+            cInfo.trainer_class      = fields[37].GetUInt8();
+            cInfo.trainer_race       = fields[38].GetUInt8();
+            cInfo.minrangedmg        = fields[39].GetFloat();
+            cInfo.maxrangedmg        = fields[40].GetFloat();
+            cInfo.rangedattackpower  = fields[41].GetUInt16();
+            cInfo.type               = fields[42].GetUInt8();
+            cInfo.type_flags         = fields[43].GetUInt32();
+            cInfo.type_flags2        = fields[44].GetUInt32();
+            cInfo.lootid             = fields[45].GetUInt32();
+            cInfo.pickpocketLootId   = fields[46].GetUInt32();
+            cInfo.SkinLootId         = fields[47].GetUInt32();
 
+            cInfo.resistance[0] = 0;
             for (uint8 i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
-                cInfo->resistance[i] = fields[48 + i -1].GetUInt16();
+                cInfo.resistance[i] = fields[48 + i -1].GetUInt16();
 
             for (uint8 i = 0; i < CREATURE_MAX_SPELLS; ++i)
-                cInfo->spells[i] = fields[54 + i].GetUInt32();
+                cInfo.spells[i] = fields[54 + i].GetUInt32();
 
-            cInfo->PetSpellDataId     = fields[62].GetUInt32();
-            cInfo->VehicleId          = fields[63].GetUInt32();
-            cInfo->mingold            = fields[64].GetUInt32();
-            cInfo->maxgold            = fields[65].GetUInt32();
-            cInfo->AIName             = fields[66].GetString();
-            cInfo->MovementType       = fields[67].GetUInt8();
-            cInfo->InhabitType        = fields[68].GetUInt8();
-            cInfo->HoverHeight        = fields[69].GetFloat();
-            cInfo->ModHealth          = fields[70].GetFloat();
-            cInfo->ModMana            = fields[71].GetFloat();
-            cInfo->ModManaExtra       = fields[72].GetFloat();
-            cInfo->ModArmor           = fields[73].GetFloat();
-            cInfo->RacialLeader       = fields[74].GetBool();
+            cInfo.PetSpellDataId     = fields[62].GetUInt32();
+            cInfo.VehicleId          = fields[63].GetUInt32();
+            cInfo.mingold            = fields[64].GetUInt32();
+            cInfo.maxgold            = fields[65].GetUInt32();
+            cInfo.AIName             = fields[66].GetString();
+            cInfo.MovementType       = fields[67].GetUInt8();
+            cInfo.InhabitType        = fields[68].GetUInt8();
+            cInfo.HoverHeight        = fields[69].GetFloat();
+            cInfo.ModHealth          = fields[70].GetFloat();
+            cInfo.ModMana            = fields[71].GetFloat();
+            cInfo.ModManaExtra       = fields[72].GetFloat();
+            cInfo.ModArmor           = fields[73].GetFloat();
+            cInfo.RacialLeader       = fields[74].GetBool();
 
             for (uint8 i = 0; i < MAX_CREATURE_QUEST_ITEMS; ++i)
-                cInfo->questItems[i] = fields[75 + i].GetUInt32();
+                cInfo.questItems[i] = fields[75 + i].GetUInt32();
 
-            cInfo->movementId         = fields[81].GetUInt32();
-            cInfo->RegenHealth        = fields[82].GetBool();
-            cInfo->MechanicImmuneMask = fields[83].GetUInt32();
-            cInfo->flags_extra        = fields[84].GetUInt32();
-            cInfo->ScriptID           = sObjectMgr->GetScriptId(fields[85].GetCString());
+            cInfo.movementId         = fields[81].GetUInt32();
+            cInfo.RegenHealth        = fields[82].GetBool();
+            cInfo.MechanicImmuneMask = fields[83].GetUInt32();
+            cInfo.flags_extra        = fields[84].GetUInt32();
+            cInfo.ScriptID           = sObjectMgr->GetScriptId(fields[85].GetCString());
 
-            sObjectMgr->CheckCreatureTemplate(cInfo);
+            sObjectMgr->CheckCreatureTemplate(&cInfo);
+
+            #pragma endregion
+
+            #pragma region RELOAD_CREATURE_TEMPLATE_ADDON_ENTRY
+
+            stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_CREATURE_TEMPLATE_ADDON);
+            stmt->setUInt32(0, entry);
+            result = WorldDatabase.Query(stmt);
+
+            // if creature template does not have an addon, skip its reloading
+            if (result)
+            {
+                fields = result->Fetch();
+
+                if (!sObjectMgr->GetCreatureTemplate(entry))
+                {
+                    TC_LOG_ERROR("sql.sql", "Creature template (Entry: %u) does not exist but has a record in `creature_template_addon`", entry);
+                    continue;
+                }
+
+                CreatureAddon& creatureAddon = sObjectMgr->GetCreatureTemplateAddonContainer()[entry];
+
+                creatureAddon.path_id = fields[1].GetUInt32();
+                creatureAddon.mount = fields[2].GetUInt32();
+                creatureAddon.bytes1 = fields[3].GetUInt32();
+                creatureAddon.bytes2 = fields[4].GetUInt32();
+                creatureAddon.emote = fields[5].GetUInt32();
+
+                Tokenizer tokens(fields[6].GetString(), ' ');
+                uint8 i = 0;
+                creatureAddon.auras.resize(tokens.size());
+                for (Tokenizer::const_iterator itr = tokens.begin(); itr != tokens.end(); ++itr)
+                {
+                    SpellInfo const* AdditionalSpellInfo = sSpellMgr->GetSpellInfo(uint32(atol(*itr)));
+                    if (!AdditionalSpellInfo)
+                    {
+                        TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has wrong spell %u defined in `auras` field in `creature_template_addon`.", entry, uint32(atol(*itr)));
+                        continue;
+                    }
+
+                    if (AdditionalSpellInfo->HasAura(SPELL_AURA_CONTROL_VEHICLE))
+                        TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has SPELL_AURA_CONTROL_VEHICLE aura %u defined in `auras` field in `creature_template_addon`.", entry, uint32(atol(*itr)));
+
+                    creatureAddon.auras[i++] = uint32(atol(*itr));
+                }
+
+                if (creatureAddon.mount)
+                {
+                    if (!sCreatureDisplayInfoStore.LookupEntry(creatureAddon.mount))
+                    {
+                        TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has invalid displayInfoId (%u) for mount defined in `creature_template_addon`", entry, creatureAddon.mount);
+                        creatureAddon.mount = 0;
+                    }
+                }
+
+                if (!sEmotesStore.LookupEntry(creatureAddon.emote))
+                {
+                    TC_LOG_ERROR("sql.sql", "Creature (Entry: %u) has invalid emote (%u) defined in `creature_template_addon`.", entry, creatureAddon.emote);
+                    creatureAddon.emote = 0;
+                }
+            }
+            #pragma endregion
+
+            #pragma region RELOAD_CREATURE_EQUIP_TEMPLATE
+
+            stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_CREATURE_EQUIP_TEMPLATE);
+            stmt->setUInt32(0, entry);
+            result = WorldDatabase.Query(stmt);
+
+            // if creature template does not have an equip template, skip its reloading
+            if (result)
+            {
+                do
+                {
+                    fields = result->Fetch();
+                    uint8 id = fields[1].GetUInt8();
+                    EquipmentInfo& equipmentInfo = sObjectMgr->GetCreatureEquipmentInfoContainer()[entry][id];
+
+                    equipmentInfo.ItemEntry[0] = fields[2].GetUInt32();
+                    equipmentInfo.ItemEntry[1] = fields[3].GetUInt32();
+                    equipmentInfo.ItemEntry[2] = fields[4].GetUInt32();
+
+                    for (uint8 i = 0; i < MAX_EQUIPMENT_ITEMS; ++i)
+                    {
+                        if (!equipmentInfo.ItemEntry[i])
+                            continue;
+
+                        ItemEntry const* dbcItem = sItemStore.LookupEntry(equipmentInfo.ItemEntry[i]);
+
+                        if (!dbcItem)
+                        {
+                            TC_LOG_ERROR("sql.sql", "Unknown item (entry=%u) in creature_equip_template.itemEntry%u for entry = %u and id=%u, forced to 0.",
+                                equipmentInfo.ItemEntry[i], i + 1, entry, id);
+                            equipmentInfo.ItemEntry[i] = 0;
+                            continue;
+                        }
+
+                        if (dbcItem->InventoryType != INVTYPE_WEAPON &&
+                            dbcItem->InventoryType != INVTYPE_SHIELD &&
+                            dbcItem->InventoryType != INVTYPE_RANGED &&
+                            dbcItem->InventoryType != INVTYPE_2HWEAPON &&
+                            dbcItem->InventoryType != INVTYPE_WEAPONMAINHAND &&
+                            dbcItem->InventoryType != INVTYPE_WEAPONOFFHAND &&
+                            dbcItem->InventoryType != INVTYPE_HOLDABLE &&
+                            dbcItem->InventoryType != INVTYPE_THROWN &&
+                            dbcItem->InventoryType != INVTYPE_RANGEDRIGHT)
+                        {
+                            TC_LOG_ERROR("sql.sql", "Item (entry=%u) in creature_equip_template.itemEntry%u for entry = %u and id = %u is not equipable in a hand, forced to 0.",
+                                equipmentInfo.ItemEntry[i], i + 1, entry, id);
+                            equipmentInfo.ItemEntry[i] = 0;
+                        }
+                    }
+                } while (result->NextRow());
+            }
+
+            #pragma endregion
         }
 
-        handler->SendGlobalGMSysMessage("Creature template reloaded.");
+        handler->SendGlobalGMSysMessage("Some creature templates, their addons and equip templates were reloaded.");
+
         return true;
     }
 

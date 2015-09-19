@@ -60,6 +60,21 @@ CreatureAddonContainer& ObjectMgr::GetCreatureAddonContainer()
     return _creatureAddonStore;
 }
 
+CreatureAddonContainer& ObjectMgr::GetCreatureTemplateAddonContainer()
+{
+    return _creatureTemplateAddonStore;
+}
+
+CreatureTemplateContainer& ObjectMgr::GetCreatureTemplateContainer()
+{
+    return _creatureTemplateStore;
+}
+
+EquipmentInfoContainer& ObjectMgr::GetCreatureEquipmentInfoContainer()
+{
+    return _equipmentInfoStore;
+}
+
 #pragma endregion
 
 ScriptMapMap sSpellScripts;

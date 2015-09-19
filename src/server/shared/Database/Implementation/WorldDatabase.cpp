@@ -97,6 +97,10 @@ void WorldDatabaseConnection::DoPrepareStatements()
     // blackmarket
     PrepareStatement(WORLD_SEL_BLACKMARKET_TEMPLATE, "SELECT Id, MarketID, SellerID, ItemEntry, Quantity, MinBid, Duration, Chance FROM blackmarket_template", CONNECTION_SYNCH);
 
+    // FREEDOM CUSTOM INTERNAL STMTs
+    PrepareStatement(WORLD_SEL_CREATURE_TEMPLATE_ADDON, "SELECT entry, path_id, mount, bytes1, bytes2, emote, auras FROM creature_template_addon WHERE entry = ?", CONNECTION_SYNCH);
+    PrepareStatement(WORLD_SEL_CREATURE_EQUIP_TEMPLATE, "SELECT entry, id, itemEntry1, itemEntry2, itemEntry3 FROM creature_equip_template WHERE entry = ?", CONNECTION_SYNCH);
+
     // FREEDOM CMDS
     PrepareStatement(WORLD_SEL_FREEDOM_TELE, "SELECT position_x, position_y, position_z, orientation, map, name, gm_uid FROM freedom_tele WHERE name LIKE ?", CONNECTION_SYNCH);
     PrepareStatement(WORLD_SEL_FREEDOM_TELE_EXACT, "SELECT position_x, position_y, position_z, orientation, map, name, gm_uid FROM freedom_tele WHERE name = ?", CONNECTION_SYNCH);

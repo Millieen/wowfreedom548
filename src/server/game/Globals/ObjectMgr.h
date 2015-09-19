@@ -667,6 +667,9 @@ class ObjectMgr
         #pragma region FREEDOM_CUSTOM
 
         CreatureAddonContainer& GetCreatureAddonContainer();
+        CreatureAddonContainer& GetCreatureTemplateAddonContainer();
+        CreatureTemplateContainer& GetCreatureTemplateContainer();
+        EquipmentInfoContainer& GetCreatureEquipmentInfoContainer();
 
         #pragma endregion
 
