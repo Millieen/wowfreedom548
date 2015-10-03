@@ -282,10 +282,6 @@ public:
 
         if (target)
         {
-            // check online security
-            //if (handler->HasLowerSecurity(target, 0))
-            //    return false;
-
             std::string chrNameLink = handler->playerLink(targetName);
 
             Map* map = target->GetMap();
@@ -308,10 +304,6 @@ public:
         }
         else
         {
-            // check offline security
-            if (handler->HasLowerSecurity(NULL, targetGuid))
-                return false;
-
             std::string nameLink = handler->playerLink(targetName);
 
             handler->PSendSysMessage(LANG_APPEARING_AT, nameLink.c_str());
@@ -358,9 +350,6 @@ public:
         if (target)
         {
             std::string nameLink = handler->playerLink(targetName);
-            // check online security
-            if (handler->HasLowerSecurity(target, 0))
-                return false;
 
             if (target->IsBeingTeleported())
             {
@@ -389,10 +378,6 @@ public:
         }
         else
         {
-            // check offline security
-            if (handler->HasLowerSecurity(NULL, targetGuid))
-                return false;
-
             std::string nameLink = handler->playerLink(targetName);
 
             handler->PSendSysMessage(LANG_SUMMONING, nameLink.c_str(), handler->GetTrinityString(LANG_OFFLINE));

@@ -87,17 +87,12 @@ public:
             if (!target || target == source || !target->GetSession())
                 continue;
 
-            // check online security
-            if (handler->HasLowerSecurity(target, 0))
-                return false;
-
             std::string plNameLink = handler->GetNameLink(target);
 
             if (target->IsBeingTeleported())
             {
                 handler->PSendSysMessage(LANG_IS_TELEPORTED, plNameLink.c_str());
-                handler->SetSentErrorMessage(true);
-                return false;
+                continue;
             }
 
             handler->PSendSysMessage(LANG_SUMMONING, plNameLink.c_str(), "");
