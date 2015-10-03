@@ -181,8 +181,9 @@ public:
         Player* target;
         handler->extractPlayerTarget((char*)args, &target);
 
-        if (!target)
+        if (!target || target->GetSession()->PlayerLoading())
         {
+            handler->PSendSysMessage("Player is either offline or at loading screen.");
             return true;
         }
 
@@ -192,6 +193,7 @@ public:
         if (FRaid::IsInRaid(target_guid))
         {
             handler->PSendSysMessage("Target is already in a raid.");
+            ChatHandler(target->GetSession()).PSendSysMessage("%s tried to invite you to his raid but you are already in a raid.", handler->GetNameLink().c_str());
             return true;
         }
 
